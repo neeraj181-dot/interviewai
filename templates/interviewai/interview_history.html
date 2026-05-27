@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Interview History - InterviewAI{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Header -->
+    <div class="glass-card p-4 mb-4">
+        <h2 style="color: var(--primary-neon);">
+            <i class="fas fa-history me-2"></i>Interview History
+        </h2>
+        <p style="color: var(--text-secondary);">Track your progress and review past interviews</p>
+    </div>
+
+    <!-- History Table -->
+    <div class="glass-card p-4">
+        {% if histories %}
+            <div class="table-responsive">
+                <table class="table table-dark-custom">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Score</th>
+                            <th>Percentage</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for history in histories %}
+                        <tr>
+                            <td>
+                                <span class="badge" style="background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon)); color: var(--bg-dark);">
+                                    {{ history.get_category_display }}
+                                </span>
+                            </td>
+                            <td>{{ history.score }}/{{ history.total_questions }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar" style="width: {{ history.percentage }}%;"></div>
+                                    </div>
+                                    <span>{{ history.percentage }}%</span>
+                                </div>
+                            </td>
+                            <td>{{ history.completed_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'interview_result' history_id=history.id %}" class="btn btn-sm btn-neon-outline">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox mb-3" style="font-size: 3rem; color: var(--text-secondary);"></i>
+                <h4 style="color: var(--text-secondary);">No interview history yet</h4>
+                <p style="color: var(--text-secondary);">Start your first interview to see your progress here!</p>
+                <a href="{% url 'dashboard' %}" class="btn btn-neon mt-3">
+                    <i class="fas fa-play me-2"></i>Start Interview
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - InterviewAI{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Welcome Section -->
+    <div class="glass-card p-4 mb-4">
+        <h2 class="mb-2">Welcome back, <span style="color: var(--primary-neon);">{{ user.username }}</span>!</h2>
+        <p style="color: var(--text-secondary);">Ready to ace your next interview? Choose a category below to start practicing.</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="glass-card p-4 text-center neon-glow">
+                <i class="fas fa-trophy mb-3" style="font-size: 2rem; color: var(--accent-neon);"></i>
+                <h3 style="color: var(--primary-neon);">{{ user_profile.total_score }}</h3>
+                <p style="color: var(--text-secondary);">Total Score</p>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="glass-card p-4 text-center neon-glow-purple">
+                <i class="fas fa-clipboard-check mb-3" style="font-size: 2rem; color: var(--secondary-neon);"></i>
+                <h3 style="color: var(--primary-neon);">{{ user_profile.interviews_completed }}</h3>
+                <p style="color: var(--text-secondary);">Interviews Completed</p>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="glass-card p-4 text-center neon-glow-green">
+                <i class="fas fa-chart-line mb-3" style="font-size: 2rem; color: var(--accent-neon);"></i>
+                <h3 style="color: var(--primary-neon);">{{ user_profile.average_score }}%</h3>
+                <p style="color: var(--text-secondary);">Average Score</p>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="glass-card p-4 text-center">
+                <i class="fas fa-fire mb-3" style="font-size: 2rem; color: #ff6b6b;"></i>
+                <h3 style="color: var(--primary-neon);">{{ user_profile.interviews_completed }}</h3>
+                <p style="color: var(--text-secondary);">Streak</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interview Categories -->
+    <h3 class="mb-4" style="color: var(--primary-neon);">
+        <i class="fas fa-layer-group me-2"></i>Interview Categories
+    </h3>
+    <div class="row mb-4">
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="category-card" onclick="window.location.href='{% url 'interview_start' category='python' %}'">
+                <div class="category-icon category-python">
+                    <i class="fab fa-python"></i>
+                </div>
+                <h4>Python</h4>
+                <p style="color: var(--text-secondary);">Master Python programming concepts and best practices</p>
+                <div class="mt-3">
+                    <small style="color: var(--text-secondary);">
+                        <i class="fas fa-check-circle me-1"></i>{{ category_stats.python.completed }} completed
+                    </small>
+                    <div class="progress mt-2">
+                        <div class="progress-bar" style="width: {{ category_stats.python.avg_score }}%;"></div>
+                    </div>
+                    <small style="color: var(--text-secondary);">Avg: {{ category_stats.python.avg_score }}%</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="category-card" onclick="window.location.href='{% url 'interview_start' category='django' %}'">
+                <div class="category-icon category-django">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h4>Django</h4>
+                <p style="color: var(--text-secondary);">Deep dive into Django framework and web development</p>
+                <div class="mt-3">
+                    <small style="color: var(--text-secondary);">
+                        <i class="fas fa-check-circle me-1"></i>{{ category_stats.django.completed }} completed
+                    </small>
+                    <div class="progress mt-2">
+                        <div class="progress-bar" style="width: {{ category_stats.django.avg_score }}%;"></div>
+                    </div>
+                    <small style="color: var(--text-secondary);">Avg: {{ category_stats.django.avg_score }}%</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="category-card" onclick="window.location.href='{% url 'interview_start' category='hr' %}'">
+                <div class="category-icon category-hr">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h4>HR</h4>
+                <p style="color: var(--text-secondary);">Prepare for behavioral and HR interview questions</p>
+                <div class="mt-3">
+                    <small style="color: var(--text-secondary);">
+                        <i class="fas fa-check-circle me-1"></i>{{ category_stats.hr.completed }} completed
+                    </small>
+                    <div class="progress mt-2">
+                        <div class="progress-bar" style="width: {{ category_stats.hr.avg_score }}%;"></div>
+                    </div>
+                    <small style="color: var(--text-secondary);">Avg: {{ category_stats.hr.avg_score }}%</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="category-card" onclick="window.location.href='{% url 'interview_start' category='web' %}'">
+                <div class="category-icon category-web">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h4>Web Development</h4>
+                <p style="color: var(--text-secondary);">Test your web development skills and knowledge</p>
+                <div class="mt-3">
+                    <small style="color: var(--text-secondary);">
+                        <i class="fas fa-check-circle me-1"></i>{{ category_stats.web.completed }} completed
+                    </small>
+                    <div class="progress mt-2">
+                        <div class="progress-bar" style="width: {{ category_stats.web.avg_score }}%;"></div>
+                    </div>
+                    <small style="color: var(--text-secondary);">Avg: {{ category_stats.web.avg_score }}%</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Interview History -->
+    <h3 class="mb-4" style="color: var(--primary-neon);">
+        <i class="fas fa-history me-2"></i>Recent Interviews
+    </h3>
+    <div class="glass-card p-4">
+        {% if recent_histories %}
+            <div class="table-responsive">
+                <table class="table table-dark-custom">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Score</th>
+                            <th>Percentage</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for history in recent_histories %}
+                        <tr>
+                            <td>
+                                <span class="badge" style="background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon)); color: var(--bg-dark);">
+                                    {{ history.get_category_display }}
+                                </span>
+                            </td>
+                            <td>{{ history.score }}/{{ history.total_questions }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar" style="width: {{ history.percentage }}%;"></div>
+                                    </div>
+                                    <span>{{ history.percentage }}%</span>
+                                </div>
+                            </td>
+                            <td>{{ history.completed_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center" style="color: var(--text-secondary);">
+                <i class="fas fa-inbox me-2"></i>No interviews completed yet. Start your first interview!
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

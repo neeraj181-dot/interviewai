@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - InterviewAI{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Header -->
+    <div class="glass-card p-4 mb-4">
+        <h2 style="color: var(--primary-neon);">
+            <i class="fas fa-user me-2"></i>My Profile
+        </h2>
+        <p style="color: var(--text-secondary);">View your progress and statistics</p>
+    </div>
+
+    <!-- Profile Info -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="glass-card p-4 text-center neon-glow">
+                <div class="mb-3">
+                    <i class="fas fa-user-circle" style="font-size: 5rem; color: var(--primary-neon);"></i>
+                </div>
+                <h3 style="color: var(--primary-neon);">{{ user.username }}</h3>
+                <p style="color: var(--text-secondary);">{{ user.email }}</p>
+                <p class="mb-0" style="color: var(--text-secondary);">
+                    <i class="fas fa-calendar me-1"></i>Joined: {{ user.date_joined|date:"M d, Y" }}
+                </p>
+            </div>
+        </div>
+        <div class="col-md-8 mb-3">
+            <div class="glass-card p-4">
+                <h4 class="mb-4" style="color: var(--primary-neon);">
+                    <i class="fas fa-chart-line me-2"></i>Overall Statistics
+                </h4>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-trophy mb-2" style="font-size: 2rem; color: var(--accent-neon);"></i>
+                            <h3 style="color: var(--primary-neon);">{{ user_profile.total_score }}</h3>
+                            <p style="color: var(--text-secondary);">Total Score</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-clipboard-check mb-2" style="font-size: 2rem; color: var(--secondary-neon);"></i>
+                            <h3 style="color: var(--primary-neon);">{{ user_profile.interviews_completed }}</h3>
+                            <p style="color: var(--text-secondary);">Interviews Completed</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-percentage mb-2" style="font-size: 2rem; color: var(--accent-neon);"></i>
+                            <h3 style="color: var(--primary-neon);">{{ user_profile.average_score }}%</h3>
+                            <p style="color: var(--text-secondary);">Average Score</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Performance -->
+    <div class="glass-card p-4 mb-4">
+        <h4 class="mb-4" style="color: var(--primary-neon);">
+            <i class="fas fa-layer-group me-2"></i>Category Performance
+        </h4>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="glass-card p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0"><i class="fab fa-python me-2" style="color: #3776ab;"></i>Python</h5>
+                        <span class="badge" style="background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon)); color: var(--bg-dark);">
+                            {{ category_performance.python.avg_score }}%
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" style="width: {{ category_performance.python.avg_score }}%;"></div>
+                    </div>
+                    <small style="color: var(--text-secondary);">{{ category_performance.python.count }} interviews completed</small>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="glass-card p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0"><i class="fas fa-globe me-2" style="color: #092e20;"></i>Django</h5>
+                        <span class="badge" style="background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon)); color: var(--bg-dark);">
+                            {{ category_performance.django.avg_score }}%
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" style="width: {{ category_performance.django.avg_score }}%;"></div>
+                    </div>
+                    <small style="color: var(--text-secondary);">{{ category_performance.django.count }} interviews completed</small>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="glass-card p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0"><i class="fas fa-users me-2" style="color: #ff6b6b;"></i>HR</h5>
+                        <span class="badge" style="background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon)); color: var(--bg-dark);">
+                            {{ category_performance.hr.avg_score }}%
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" style="width: {{ category_performance.hr.avg_score }}%;"></div>
+                    </div>
+                    <small style="color: var(--text-secondary);">{{ category_performance.hr.count }} interviews completed</small>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="glass-card p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0"><i class="fas fa-code me-2" style="color: #f39c12;"></i>Web Development</h5>
+                        <span class="badge" style="background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon)); color: var(--bg-dark);">
+                            {{ category_performance.web.avg_score }}%
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" style="width: {{ category_performance.web.avg_score }}%;"></div>
+                    </div>
+                    <small style="color: var(--text-secondary);">{{ category_performance.web.count }} interviews completed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="glass-card p-4">
+        <h4 class="mb-4" style="color: var(--primary-neon);">
+            <i class="fas fa-clock me-2"></i>Recent Activity
+        </h4>
+        {% if histories %}
+            <div class="table-responsive">
+                <table class="table table-dark-custom">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Score</th>
+                            <th>Percentage</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for history in histories|slice:":5" %}
+                        <tr>
+                            <td>
+                                <span class="badge" style="background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon)); color: var(--bg-dark);">
+                                    {{ history.get_category_display }}
+                                </span>
+                            </td>
+                            <td>{{ history.score }}/{{ history.total_questions }}</td>
+                            <td>{{ history.percentage }}%</td>
+                            <td>{{ history.completed_at|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center" style="color: var(--text-secondary);">
+                <i class="fas fa-inbox me-2"></i>No recent activity
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
