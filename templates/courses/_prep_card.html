@@ -1,0 +1,28 @@
+<div class="prep-card" style="--c-color:{{ course.color }};--c-glow:{{ course.color }}0d;"
+     onclick="openCourseLevelModal('{{ course.slug }}','{{ course.name }}','{{ course.color }}')">
+  <div class="card-glow"></div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+    <div style="width:48px;height:48px;border-radius:13px;background:{{ course.color }}18;color:{{ course.color }};display:flex;align-items:center;justify-content:center;font-size:1.3rem;border:1px solid {{ course.color }}22;">
+      <i class="{{ course.icon }}"></i>
+    </div>
+    {% if course.user_sessions %}
+    <div style="text-align:right;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:{% if course.user_avg >= 70 %}var(--green){% elif course.user_avg >= 50 %}var(--gold){% else %}var(--red){% endif %};">{{ course.user_avg }}%</div>
+      <div style="font-size:0.62rem;color:var(--text-dim);">{{ course.user_sessions }} done</div>
+    </div>
+    {% else %}
+    <span style="font-size:0.62rem;color:var(--text-dim);background:rgba(255,255,255,0.04);padding:3px 9px;border-radius:20px;border:1px solid var(--border);">{{ course.q_count }}Q</span>
+    {% endif %}
+  </div>
+  <div style="font-family:'Orbitron',monospace;font-size:0.88rem;font-weight:700;color:{{ course.color }};margin-bottom:6px;letter-spacing:0.5px;">{{ course.name }}</div>
+  <div style="font-size:0.8rem;color:var(--text-dim);line-height:1.5;margin-bottom:12px;">{{ course.description }}</div>
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;">
+    <span style="font-size:0.65rem;padding:2px 8px;border-radius:20px;background:rgba(0,255,136,0.08);color:var(--green);border:1px solid rgba(0,255,136,0.2);">{{ course.beginner_count }} Beginner</span>
+    <span style="font-size:0.65rem;padding:2px 8px;border-radius:20px;background:rgba(255,215,0,0.08);color:var(--gold);border:1px solid rgba(255,215,0,0.2);">{{ course.intermediate_count }} Mid</span>
+    <span style="font-size:0.65rem;padding:2px 8px;border-radius:20px;background:rgba(255,107,157,0.08);color:var(--pink);border:1px solid rgba(255,107,157,0.2);">{{ course.advanced_count }} Adv</span>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);">
+    <span style="font-size:0.7rem;color:var(--text-dim);"><i class="fas fa-question-circle"></i> {{ course.q_count }} questions</span>
+    <span style="font-size:0.72rem;font-weight:700;color:{{ course.color }};letter-spacing:1px;text-transform:uppercase;">Start →</span>
+  </div>
+</div>

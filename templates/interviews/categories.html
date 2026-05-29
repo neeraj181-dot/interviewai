@@ -1,0 +1,54 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% block title %}Categories{% endblock %}
+{% block page_title %}Interview Categories{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom:24px;">
+  <h1 style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;margin-bottom:6px;">
+    Choose Your <span class="neon-cyan">Challenge</span>
+  </h1>
+  <p style="color:var(--text-dim);">Select a category and difficulty level to begin your AI-powered interview session.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;">
+  {% for category in categories %}
+  <div class="category-card fade-in-up" style="--cat-color:{{ category.color }};--cat-glow:{{ category.color }}0f;"
+       onclick="openLevelModal('{{ category.slug }}','{{ category.name }}','{{ category.color }}')">
+
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;">
+      <div class="cat-icon" style="background:{{ category.color }}18;color:{{ category.color }};">
+        <i class="{{ category.icon }}"></i>
+      </div>
+      {% if category.user_sessions %}
+      <div style="text-align:right;">
+        <div style="font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;color:{% if category.user_avg >= 70 %}var(--green){% elif category.user_avg >= 50 %}var(--gold){% else %}var(--red){% endif %};">{{ category.user_avg }}%</div>
+        <div style="font-size:0.65rem;color:var(--text-dim);">{{ category.user_sessions }} sessions</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="cat-name" style="color:{{ category.color }};">{{ category.name }}</div>
+    <div class="cat-desc">{{ category.description }}</div>
+
+    <div class="cat-levels">
+      <span class="level-pill easy"><i class="fas fa-seedling"></i> {{ category.beginner_count }} Beginner</span>
+      <span class="level-pill medium"><i class="fas fa-fire"></i> {{ category.intermediate_count }} Intermediate</span>
+      <span class="level-pill hard"><i class="fas fa-skull"></i> {{ category.advanced_count }} Advanced</span>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+      <span style="font-size:0.75rem;color:var(--text-dim);"><i class="fas fa-question-circle"></i> {{ category.q_count }} total questions</span>
+      <span style="font-size:0.75rem;font-weight:700;letter-spacing:1px;color:{{ category.color }};text-transform:uppercase;">Select Level →</span>
+    </div>
+  </div>
+  {% empty %}
+  <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-dim);">
+    <i class="fas fa-layer-group" style="font-size:3rem;margin-bottom:16px;opacity:0.2;display:block;"></i>
+    <p>No categories yet. Run <code style="color:var(--cyan);">python manage.py seed_data</code></p>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

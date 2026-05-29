@@ -1,0 +1,143 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% block title %}Q{{ question_index|add:1 }} — {{ session.category.name }}{% endblock %}
+{% block page_title %}{{ session.category.name }} Interview{% endblock %}
+
+{% block content %}
+
+<!-- Top progress bar -->
+<div class="q-header">
+  <div class="q-meta">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="width:42px;height:42px;border-radius:11px;background:{{ session.category.color }}18;color:{{ session.category.color }};display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">
+        <i class="{{ session.category.icon }}"></i>
+      </div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;color:{{ session.category.color }};">{{ session.category.name }}</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);">{{ session.get_difficulty_filter_display }} · Q{{ question_index|add:1 }} of {{ total }}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:20px;">
+      <div style="text-align:center;">
+        <div class="timer-display" id="interviewTimer">00:00</div>
+        <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;">ELAPSED</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:var(--green);">{{ session.score }}</div>
+        <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;">SCORE</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:var(--gold);">{{ answered_count }}/{{ total }}</div>
+        <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;">ANSWERED</div>
+      </div>
+    </div>
+  </div>
+  <div class="q-progress-wrap">
+    <div class="progress-track" style="flex:1;">
+      <div class="progress-fill" data-width="{{ progress }}%" style="width:{{ progress }}%;background:linear-gradient(90deg,{{ session.category.color }},{{ session.category.color }}88);box-shadow:0 0 8px {{ session.category.color }}66;"></div>
+    </div>
+    <span style="font-size:0.75rem;color:var(--text-dim);white-space:nowrap;min-width:36px;text-align:right;">{{ progress }}%</span>
+  </div>
+</div>
+
+<!-- Question Card -->
+<div class="glass-card" style="padding:28px 32px;margin-bottom:18px;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+    <span class="q-number">Question {{ question_index|add:1 }}</span>
+    <span class="diff-badge diff-{{ question.difficulty }}">
+      {% if question.difficulty == 'easy' %}<i class="fas fa-seedling"></i>{% elif question.difficulty == 'medium' %}<i class="fas fa-fire"></i>{% else %}<i class="fas fa-skull"></i>{% endif %}
+      {{ question.get_difficulty_display }}
+    </span>
+    <span style="margin-left:auto;font-size:0.78rem;color:var(--gold);display:flex;align-items:center;gap:4px;">
+      <i class="fas fa-star"></i> {{ question.points }} pts
+    </span>
+    {% if already_answered %}
+    <span style="font-size:0.72rem;color:var(--green);background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.25);padding:2px 10px;border-radius:20px;">
+      <i class="fas fa-check"></i> Answered
+    </span>
+    {% endif %}
+  </div>
+  <div class="q-text">{{ question.text }}</div>
+</div>
+
+<!-- Answer Form -->
+<div class="glass-card" style="padding:28px 32px;margin-bottom:18px;">
+  <div style="font-size:0.72rem;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+    <i class="fas fa-keyboard" style="color:var(--cyan);"></i> Your Answer
+  </div>
+
+  {% if messages %}
+  {% for message in messages %}
+  <div class="alert-neon alert-error" style="margin-bottom:14px;">{{ message }}</div>
+  {% endfor %}
+  {% endif %}
+
+  <form method="post" id="answerForm">
+    {% csrf_token %}
+    <textarea name="answer" class="answer-box" id="answerBox"
+      placeholder="Type your answer here... Include key concepts, terminology, and examples for a higher score."
+      rows="6">{{ saved_answer }}</textarea>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;flex-wrap:wrap;gap:12px;">
+      <div style="font-size:0.8rem;color:var(--text-dim);display:flex;align-items:center;gap:6px;">
+        <i class="fas fa-lightbulb" style="color:var(--gold);"></i>
+        Tip: Use keywords and explain your reasoning for a better score.
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        {% if question_index > 0 %}
+        <a href="{% url 'interview_question' session.id question_index|add:"-1" %}" class="btn-ghost">
+          <i class="fas fa-arrow-left"></i> Previous
+        </a>
+        {% endif %}
+        <button type="submit" class="btn-solid" id="submitBtn">
+          {% if next_index >= total %}
+          <i class="fas fa-flag-checkered"></i> Finish Interview
+          {% else %}
+          Next <i class="fas fa-arrow-right"></i>
+          {% endif %}
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Question Dots -->
+<div class="q-dots" id="qDots"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+  const total = {{ total }};
+  const current = {{ question_index }};
+  const container = document.getElementById('qDots');
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'q-dot ' + (i < current ? 'done' : i === current ? 'current' : 'pending');
+    container.appendChild(d);
+  }
+
+  // Prevent double-submit
+  document.getElementById('answerForm').addEventListener('submit', function() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+  });
+
+  // Char counter
+  const box = document.getElementById('answerBox');
+  if (box) {
+    const counter = document.createElement('div');
+    counter.style.cssText = 'font-size:0.72rem;color:var(--text-dim);text-align:right;margin-top:6px;';
+    box.parentNode.insertBefore(counter, box.nextSibling);
+    box.addEventListener('input', () => {
+      const len = box.value.length;
+      counter.textContent = len + ' characters';
+      counter.style.color = len > 50 ? 'var(--green)' : 'var(--text-dim)';
+    });
+    if (box.value) box.dispatchEvent(new Event('input'));
+  }
+})();
+</script>
+{% endblock %}

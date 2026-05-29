@@ -1,0 +1,145 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% block title %}Result — {{ session.course.name }}{% endblock %}
+{% block page_title %}Course Result{% endblock %}
+
+{% block content %}
+
+<!-- Result Hero -->
+<div class="glass-card" style="padding:40px;text-align:center;margin-bottom:24px;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(0,212,255,0.06),transparent 60%);pointer-events:none;"></div>
+
+  <div style="font-size:0.7rem;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;">
+    <i class="fas fa-graduation-cap" style="color:var(--cyan);margin-right:6px;"></i>Course Complete — {{ session.course.name }}
+  </div>
+
+  <div class="score-ring pulse-glow score-pop" style="border-color:{{ grade_color }};">
+    <div class="score-pct" style="color:{{ grade_color }};text-shadow:0 0 25px {{ grade_color }};" id="scorePct">0%</div>
+    <div class="score-lbl">Score</div>
+  </div>
+
+  <div style="font-family:'Orbitron',monospace;font-size:2.8rem;font-weight:900;color:{{ grade_color }};text-shadow:0 0 30px {{ grade_color }};margin-bottom:8px;">{{ grade }}</div>
+  <div style="font-size:1rem;color:var(--text-mid);margin-bottom:28px;max-width:500px;margin-left:auto;margin-right:auto;">{{ session.feedback }}</div>
+
+  <div style="display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin-bottom:28px;">
+    <div style="text-align:center;">
+      <div style="font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:700;color:var(--green);" data-count="{{ session.correct_answers }}" data-suffix="">0</div>
+      <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;">Correct</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:700;color:var(--red);" id="incorrectVal">-</div>
+      <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;">Incorrect</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:700;color:var(--gold);" data-count="{{ session.score }}" data-suffix="">0</div>
+      <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;">Points</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:700;color:var(--purple);" data-count="{{ xp_earned }}" data-suffix=" XP">0 XP</div>
+      <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;">XP Earned</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:700;color:var(--cyan);">{{ session.duration_minutes }}m</div>
+      <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;">Duration</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+    <a href="{% url 'start_course' session.course.slug %}" class="btn-solid"><i class="fas fa-redo"></i> Retry</a>
+    <a href="{% url 'course_list' %}" class="btn-neon"><i class="fas fa-graduation-cap"></i> All Courses</a>
+    <a href="{% url 'dashboard' %}" class="btn-ghost"><i class="fas fa-th-large"></i> Dashboard</a>
+  </div>
+</div>
+
+<!-- Topic Breakdown -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;">
+  {% for diff, data in breakdown.items %}
+  <div class="glass-card-static" style="padding:18px;text-align:center;">
+    <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">
+      {% if diff == 'easy' %}<i class="fas fa-seedling" style="color:var(--green);"></i> Beginner
+      {% elif diff == 'medium' %}<i class="fas fa-fire" style="color:var(--gold);"></i> Intermediate
+      {% else %}<i class="fas fa-skull" style="color:var(--pink);"></i> Advanced{% endif %}
+    </div>
+    {% if data.total > 0 %}
+    <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;
+         color:{% if diff == 'easy' %}var(--green){% elif diff == 'medium' %}var(--gold){% else %}var(--pink){% endif %};">
+      {{ data.correct }}/{{ data.total }}
+    </div>
+    <div style="margin-top:8px;">
+      <div class="progress-track">
+        <div class="progress-fill {% if diff == 'easy' %}progress-fill-green{% elif diff == 'medium' %}progress-fill-gold{% else %}progress-fill-pink{% endif %}"
+             data-width="{% widthratio data.correct data.total 100 %}%"
+             style="width:0%;"></div>
+      </div>
+    </div>
+    {% else %}
+    <div style="color:var(--text-dim);font-size:0.85rem;">No questions</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Answer Review -->
+<div>
+  <h2 style="font-family:'Orbitron',monospace;font-size:0.95rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);margin-bottom:16px;">
+    <i class="fas fa-search" style="color:var(--cyan);margin-right:8px;"></i>Answer Review
+  </h2>
+  {% for answer in answers %}
+  <div class="review-card {% if answer.is_correct %}correct{% else %}incorrect{% endif %} fade-in-up">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px;">
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+          <span style="font-size:0.7rem;color:var(--text-dim);">Q{{ forloop.counter }}</span>
+          <span class="diff-badge diff-{{ answer.question.difficulty }}">{{ answer.question.get_difficulty_display }}</span>
+          <span style="font-size:0.7rem;color:var(--gold);"><i class="fas fa-star"></i> {{ answer.question.points }}pts</span>
+        </div>
+        <div style="font-weight:600;color:var(--text-bright);line-height:1.55;font-size:0.95rem;">{{ answer.question.text }}</div>
+      </div>
+      <div style="flex-shrink:0;text-align:center;">
+        {% if answer.is_correct %}
+        <div style="width:34px;height:34px;border-radius:50%;background:rgba(0,255,136,0.15);border:1px solid rgba(0,255,136,0.4);display:flex;align-items:center;justify-content:center;color:var(--green);">
+          <i class="fas fa-check"></i>
+        </div>
+        {% else %}
+        <div style="width:34px;height:34px;border-radius:50%;background:rgba(255,71,87,0.15);border:1px solid rgba(255,71,87,0.4);display:flex;align-items:center;justify-content:center;color:var(--red);">
+          <i class="fas fa-times"></i>
+        </div>
+        {% endif %}
+        <div style="font-size:0.68rem;color:var(--gold);margin-top:4px;font-weight:700;">+{{ answer.points_earned }}pts</div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,0.02);border-radius:8px;padding:11px 14px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.04);">
+      <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;">Your Answer</div>
+      <div style="font-size:0.9rem;color:var(--text-mid);line-height:1.5;">{{ answer.answer_text }}</div>
+    </div>
+    {% if answer.question.explanation %}
+    <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.12);border-radius:8px;padding:11px 14px;">
+      <div style="font-size:0.65rem;color:var(--cyan);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;"><i class="fas fa-lightbulb"></i> Explanation</div>
+      <div style="font-size:0.88rem;color:var(--text-dim);line-height:1.5;">{{ answer.question.explanation }}</div>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('incorrectVal').textContent = {{ session.total_questions }} - {{ session.correct_answers }};
+(function(){
+  const el = document.getElementById('scorePct');
+  const target = {{ session.percentage }};
+  const start = performance.now();
+  function tick(now) {
+    const p = Math.min((now - start) / 1000, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.floor(target * ease) + '%';
+    if (p < 1) requestAnimationFrame(tick);
+    else el.textContent = target + '%';
+  }
+  requestAnimationFrame(tick);
+})();
+{% if session.percentage >= 70 %}setTimeout(launchConfetti, 600);{% endif %}
+</script>
+{% endblock %}

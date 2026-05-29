@@ -1,0 +1,272 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% block title %}{{ company.name }} — Hiring Hub{% endblock %}
+{% block page_title %}{{ company.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.process-step {
+  display:flex;align-items:flex-start;gap:14px;padding:14px 0;
+  border-bottom:1px solid var(--border);
+  transition:all 0.3s;
+}
+.process-step:hover { padding-left:6px; }
+.process-step:last-child { border-bottom:none; }
+.ai-bubble {
+  background:rgba(0,212,255,0.06);
+  border:1px solid rgba(0,212,255,0.2);
+  border-radius:12px 12px 12px 4px;
+  padding:12px 16px;
+  font-size:0.85rem;
+  color:var(--text-mid);
+  line-height:1.6;
+  margin-bottom:10px;
+  animation:fadeInUp 0.4s ease both;
+  position:relative;
+}
+.ai-bubble::before {
+  content:'';position:absolute;left:-7px;bottom:10px;
+  width:0;height:0;
+  border-top:7px solid transparent;border-bottom:7px solid transparent;
+  border-right:7px solid rgba(0,212,255,0.2);
+}
+.typing-dots span {
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--cyan);margin:0 2px;
+  animation:bounce-dot 1.2s ease-in-out infinite;
+}
+.typing-dots span:nth-child(2){animation-delay:0.2s;}
+.typing-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes bounce-dot{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 360px;gap:22px;align-items:start;">
+
+  <!-- ═══ LEFT COLUMN ═══ -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Hero -->
+    <div class="glass-card" style="padding:28px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,{{ company.color }},transparent);"></div>
+      <div style="position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,{{ company.color }}0a,transparent 70%);pointer-events:none;"></div>
+      <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;position:relative;">
+        <div style="width:76px;height:76px;border-radius:20px;background:{{ company.color }}18;color:{{ company.color }};display:flex;align-items:center;justify-content:center;font-size:2.2rem;border:1px solid {{ company.color }}33;box-shadow:0 0 24px {{ company.color }}22;flex-shrink:0;">
+          <i class="{{ company.logo_icon }}"></i>
+        </div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+            <h1 style="font-family:'Orbitron',monospace;font-size:1.5rem;font-weight:900;color:var(--text-bright);">{{ company.name }}</h1>
+            <div style="display:flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;background:{{ company.status_color }}15;border:1px solid {{ company.status_color }}33;">
+              <span style="width:7px;height:7px;border-radius:50%;background:{{ company.status_color }};box-shadow:0 0 8px {{ company.status_color }};display:inline-block;{% if company.hiring_status == 'hiring' %}animation:pulse-dot 2s infinite;{% endif %}"></span>
+              <span style="font-size:0.75rem;font-weight:700;color:{{ company.status_color }};">{{ company.get_hiring_status_display }}</span>
+            </div>
+            {% if company.is_featured %}<span style="font-size:0.68rem;padding:3px 10px;border-radius:20px;background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.3);color:var(--gold);"><i class="fas fa-star"></i> Featured</span>{% endif %}
+          </div>
+          <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.65;margin-bottom:14px;">{{ company.description }}</p>
+          {% if company.culture_tags_list %}
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            {% for tag in company.culture_tags_list %}
+            <span style="font-size:0.7rem;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.04);color:var(--text-dim);border:1px solid var(--border);">{{ tag }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;">
+      <div class="stat-card" style="--accent:var(--green);padding:16px;">
+        <div class="stat-icon" style="background:rgba(0,255,136,0.1);color:var(--green);width:36px;height:36px;font-size:0.9rem;margin-bottom:10px;"><i class="fas fa-briefcase"></i></div>
+        <div class="stat-value neon-green" style="font-size:1.4rem;">{{ company.open_positions }}</div>
+        <div class="stat-label">Open Positions</div>
+      </div>
+      <div class="stat-card" style="--accent:var(--cyan);padding:16px;">
+        <div class="stat-icon" style="background:rgba(0,212,255,0.1);color:var(--cyan);width:36px;height:36px;font-size:0.9rem;margin-bottom:10px;"><i class="fas fa-dollar-sign"></i></div>
+        <div class="stat-value neon-cyan" style="font-size:1rem;">{{ company.salary_display }}</div>
+        <div class="stat-label">Salary Range</div>
+      </div>
+      <div class="stat-card" style="--accent:var(--gold);padding:16px;">
+        <div class="stat-icon" style="background:rgba(255,215,0,0.1);color:var(--gold);width:36px;height:36px;font-size:0.9rem;margin-bottom:10px;"><i class="fas fa-layer-group"></i></div>
+        <div class="stat-value neon-gold" style="font-size:1.4rem;">{{ company.interview_rounds }}</div>
+        <div class="stat-label">Rounds</div>
+      </div>
+      <div class="stat-card" style="padding:16px;--accent:var(--pink);">
+        <div class="stat-icon" style="background:rgba(255,107,157,0.1);color:var(--pink);width:36px;height:36px;font-size:0.9rem;margin-bottom:10px;"><i class="fas fa-fire"></i></div>
+        <div class="stat-value" style="font-size:1rem;color:{% if company.difficulty == 'easy' %}var(--green){% elif company.difficulty == 'medium' %}var(--gold){% elif company.difficulty == 'hard' %}var(--pink){% else %}var(--red){% endif %};">{{ company.get_difficulty_display }}</div>
+        <div class="stat-label">Difficulty</div>
+      </div>
+    </div>
+
+    <!-- Required Skills -->
+    {% if company.skills_list %}
+    <div class="glass-card-static" style="padding:22px;">
+      <h3 style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);margin-bottom:14px;">
+        <i class="fas fa-tools" style="color:var(--cyan);margin-right:8px;"></i>Required Skills
+      </h3>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+        {% for skill in company.skills_list %}
+        <span style="padding:5px 14px;border-radius:20px;font-size:0.8rem;font-weight:600;background:{{ company.color }}12;color:{{ company.color }};border:1px solid {{ company.color }}30;cursor:pointer;transition:all 0.2s;"
+              onmouseover="this.style.background='{{ company.color }}22'" onmouseout="this.style.background='{{ company.color }}12'">{{ skill }}</span>
+        {% endfor %}
+      </div>
+      <div style="background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.2);border-radius:10px;padding:12px 14px;font-size:0.82rem;color:var(--text-dim);">
+        <i class="fas fa-lightbulb" style="color:var(--gold);margin-right:6px;"></i>
+        Practice these skills in our <a href="{% url 'course_list' %}" style="color:var(--cyan);text-decoration:none;font-weight:600;">Learning Tracks</a> before applying.
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Interview Process -->
+    {% if company.interview_process_list %}
+    <div class="glass-card-static" style="padding:22px;">
+      <h3 style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);margin-bottom:16px;">
+        <i class="fas fa-route" style="color:var(--green);margin-right:8px;"></i>Interview Process
+      </h3>
+      {% for step in company.interview_process_list %}
+      <div class="process-step">
+        <div style="width:28px;height:28px;border-radius:50%;background:{{ company.color }}18;color:{{ company.color }};display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;border:1px solid {{ company.color }}33;">{{ forloop.counter }}</div>
+        <div style="font-size:0.88rem;color:var(--text-mid);padding-top:4px;line-height:1.5;">{{ step }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- AI Tips -->
+    {% if company.ai_tips_list %}
+    <div class="glass-card-static" style="padding:22px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <div style="width:38px;height:38px;border-radius:10px;background:rgba(0,212,255,0.12);color:var(--cyan);display:flex;align-items:center;justify-content:center;font-size:1rem;border:1px solid rgba(0,212,255,0.25);">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.8rem;font-weight:700;color:var(--cyan);">AI Interview Coach</div>
+          <div style="font-size:0.72rem;color:var(--text-dim);">Personalized tips for {{ company.name }}</div>
+        </div>
+      </div>
+      <div id="aiTipsArea">
+        <div class="typing-dots" style="padding:10px 0;"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+  <!-- ═══ END LEFT ═══ -->
+
+  <!-- ═══ RIGHT COLUMN ═══ -->
+  <div style="display:flex;flex-direction:column;gap:16px;position:sticky;top:80px;">
+
+    <!-- Apply CTA -->
+    <div class="glass-card-static" style="padding:24px;text-align:center;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,{{ company.color }},transparent);"></div>
+      {% if company.careers_url %}
+      <div style="width:56px;height:56px;border-radius:16px;background:{{ company.color }}18;color:{{ company.color }};display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto 14px;border:1px solid {{ company.color }}33;box-shadow:0 0 16px {{ company.color }}22;">
+        <i class="{{ company.logo_icon }}"></i>
+      </div>
+      <div style="font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;color:var(--text-bright);margin-bottom:4px;">{{ company.name }}</div>
+      <div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:6px;">{{ company.open_positions }} positions · {{ company.salary_display }}</div>
+      {% if company.hiring_deadline %}
+      <div style="font-size:0.72rem;color:var(--gold);margin-bottom:18px;"><i class="fas fa-clock"></i> Deadline: {{ company.hiring_deadline|date:"M d, Y" }}</div>
+      {% else %}
+      <div style="margin-bottom:18px;"></div>
+      {% endif %}
+      <a href="{{ company.careers_url }}" target="_blank" rel="noopener noreferrer"
+         style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:10px;background:linear-gradient(135deg,{{ company.color }},var(--purple));color:#fff;font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:700;text-decoration:none;letter-spacing:0.5px;transition:all 0.3s;margin-bottom:10px;"
+         onmouseover="this.style.boxShadow='0 0 28px {{ company.color }}66';this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+        <i class="fas fa-external-link-alt"></i> Apply on {{ company.name }}
+      </a>
+      <div style="font-size:0.7rem;color:var(--text-dim);">Opens official {{ company.name }} careers page</div>
+      {% elif company.hiring_status == 'closed' %}
+      <div style="color:var(--red);font-size:0.9rem;"><i class="fas fa-lock"></i> Applications Closed</div>
+      {% else %}
+      <div style="color:var(--text-dim);font-size:0.85rem;">No direct application link available.</div>
+      {% endif %}
+    </div>
+
+    <!-- Quick Info -->
+    <div class="glass-card-static" style="padding:20px;">
+      <h3 style="font-family:'Orbitron',monospace;font-size:0.75rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);margin-bottom:14px;">Quick Info</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;align-items:center;">
+          <span style="color:var(--text-dim);"><i class="fas fa-clock" style="margin-right:6px;width:14px;"></i>Deadline</span>
+          <span style="color:var(--gold);font-weight:600;">{% if company.hiring_deadline %}{{ company.hiring_deadline|date:"M d, Y" }}{% else %}Rolling{% endif %}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;align-items:center;">
+          <span style="color:var(--text-dim);"><i class="fas fa-layer-group" style="margin-right:6px;width:14px;"></i>Rounds</span>
+          <span style="color:var(--cyan);font-weight:600;">{{ company.interview_rounds }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;align-items:center;">
+          <span style="color:var(--text-dim);"><i class="fas fa-fire" style="margin-right:6px;width:14px;"></i>Difficulty</span>
+          <span style="font-weight:600;color:{% if company.difficulty == 'easy' %}var(--green){% elif company.difficulty == 'medium' %}var(--gold){% elif company.difficulty == 'hard' %}var(--pink){% else %}var(--red){% endif %};">{{ company.get_difficulty_display }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;align-items:center;">
+          <span style="color:var(--text-dim);"><i class="fas fa-calendar-check" style="margin-right:6px;width:14px;"></i>Slots</span>
+          <span style="color:var(--green);font-weight:600;">{{ slots|length }} available</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prep Checklist -->
+    <div class="glass-card-static" style="padding:20px;">
+      <h3 style="font-family:'Orbitron',monospace;font-size:0.75rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);margin-bottom:14px;">
+        <i class="fas fa-tasks" style="color:var(--gold);margin-right:8px;"></i>Prep Checklist
+      </h3>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        {% for skill in company.skills_list|slice:":5" %}
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;color:var(--text-dim);">
+          <div style="width:16px;height:16px;border-radius:4px;border:1px solid {{ company.color }}44;background:{{ company.color }}0a;flex-shrink:0;"></div>
+          Practice {{ skill }}
+        </div>
+        {% endfor %}
+        <a href="{% url 'course_list' %}" style="margin-top:6px;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border-radius:8px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);color:var(--cyan);font-size:0.8rem;font-weight:600;text-decoration:none;transition:all 0.3s;" onmouseover="this.style.background='rgba(0,212,255,0.12)'" onmouseout="this.style.background='rgba(0,212,255,0.06)'">
+          <i class="fas fa-graduation-cap"></i> Start Preparation
+        </a>
+      </div>
+    </div>
+
+    <a href="{% url 'company_list' %}" class="btn-ghost" style="text-align:center;justify-content:center;">
+      <i class="fas fa-arrow-left"></i> Back to Companies
+    </a>
+  </div>
+  <!-- ═══ END RIGHT ═══ -->
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animate AI tips with typing effect
+(function(){
+  const tips = [
+    {% for tip in company.ai_tips_list %}"{{ tip|escapejs }}"{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+  const area = document.getElementById('aiTipsArea');
+  if (!area || !tips.length) return;
+
+  let i = 0;
+  function showNextTip() {
+    if (i >= tips.length) return;
+    setTimeout(() => {
+      const bubble = document.createElement('div');
+      bubble.className = 'ai-bubble';
+      bubble.style.animationDelay = (i * 0.1) + 's';
+      bubble.innerHTML = '<i class="fas fa-robot" style="color:var(--cyan);margin-right:6px;font-size:0.75rem;"></i>' + tips[i];
+      area.appendChild(bubble);
+      i++;
+      if (i < tips.length) showNextTip();
+    }, i === 0 ? 800 : 600);
+  }
+
+  // Remove typing dots and start showing tips
+  setTimeout(() => {
+    const dots = area.querySelector('.typing-dots');
+    if (dots) dots.remove();
+    showNextTip();
+  }, 600);
+})();
+</script>
+{% endblock %}

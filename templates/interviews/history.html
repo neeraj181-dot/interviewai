@@ -1,0 +1,111 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% block title %}History{% endblock %}
+{% block page_title %}Interview History{% endblock %}
+
+{% block content %}
+
+<!-- Stats -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;">
+  <div class="stat-card fade-in-up stagger-1" style="--accent:var(--cyan);">
+    <div class="stat-icon" style="background:rgba(0,212,255,0.1);color:var(--cyan);"><i class="fas fa-clipboard-check"></i></div>
+    <div class="stat-value neon-cyan" data-count="{{ total_completed }}" data-suffix="">0</div>
+    <div class="stat-label">Completed</div>
+  </div>
+  <div class="stat-card fade-in-up stagger-2" style="--accent:var(--green);">
+    <div class="stat-icon" style="background:rgba(0,255,136,0.1);color:var(--green);"><i class="fas fa-chart-line"></i></div>
+    <div class="stat-value neon-green" data-count="{{ profile.average_score }}" data-suffix="%">0%</div>
+    <div class="stat-label">Avg Score</div>
+  </div>
+  <div class="stat-card fade-in-up stagger-3" style="--accent:var(--gold);">
+    <div class="stat-icon" style="background:rgba(255,215,0,0.1);color:var(--gold);"><i class="fas fa-bolt"></i></div>
+    <div class="stat-value neon-gold" data-count="{{ profile.xp_points }}" data-suffix=" XP">0 XP</div>
+    <div class="stat-label">Total XP</div>
+  </div>
+  <div class="stat-card fade-in-up stagger-4" style="--accent:var(--pink);">
+    <div class="stat-icon" style="background:rgba(255,107,157,0.1);color:var(--pink);"><i class="fas fa-fire"></i></div>
+    <div class="stat-value neon-pink" data-count="{{ profile.streak_days }}" data-suffix=" days">0 days</div>
+    <div class="stat-label">Streak</div>
+  </div>
+</div>
+
+<!-- Category Performance -->
+{% if category_stats %}
+<div class="glass-card-static" style="padding:24px;margin-bottom:24px;">
+  <h3 style="font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);margin-bottom:18px;">
+    <i class="fas fa-chart-bar" style="color:var(--cyan);margin-right:8px;"></i>Performance by Category
+  </h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">
+    {% for cat_name, stats in category_stats.items %}
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <i class="{{ stats.icon }}" style="color:{{ stats.color }};font-size:0.85rem;"></i>
+          <span style="font-weight:600;color:var(--text-mid);font-size:0.88rem;">{{ cat_name }}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:0.72rem;color:var(--text-dim);">{{ stats.count }}x</span>
+          <span style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:{{ stats.color }};">{{ stats.avg }}%</span>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" data-width="{{ stats.avg }}%" style="width:0%;background:linear-gradient(90deg,{{ stats.color }},{{ stats.color }}88);box-shadow:0 0 8px {{ stats.color }}66;"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Session List -->
+<div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+    <h2 style="font-family:'Orbitron',monospace;font-size:0.95rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);">
+      <i class="fas fa-list" style="color:var(--pink);margin-right:8px;"></i>All Sessions
+    </h2>
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="historySearch" placeholder="Filter by category..." value="{{ search }}">
+    </div>
+  </div>
+
+  {% for session in sessions %}
+  <div class="history-row fade-in-up" data-cat="{{ session.category.name }}">
+    <div style="width:42px;height:42px;border-radius:11px;background:{{ session.category.color }}18;color:{{ session.category.color }};display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">
+      <i class="{{ session.category.icon }}"></i>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-weight:600;color:var(--text-bright);font-size:0.92rem;">{{ session.category.name }}</div>
+      <div style="font-size:0.72rem;color:var(--text-dim);">
+        {{ session.created_at|date:"M d, Y · H:i" }}
+        &nbsp;·&nbsp; {{ session.get_difficulty_filter_display }}
+        &nbsp;·&nbsp; {{ session.duration_minutes }}m
+      </div>
+    </div>
+    <div style="text-align:center;min-width:70px;">
+      <div style="font-size:0.72rem;color:var(--text-dim);">{{ session.correct_answers }}/{{ session.total_questions }}</div>
+      <div style="font-size:0.65rem;color:var(--text-dim);">correct</div>
+    </div>
+    <div style="text-align:center;min-width:70px;">
+      <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:{% if session.percentage >= 70 %}var(--green){% elif session.percentage >= 50 %}var(--gold){% else %}var(--red){% endif %};">
+        {{ session.percentage }}%
+      </div>
+      <div style="font-size:0.65rem;color:var(--text-dim);">{{ session.grade.0 }}</div>
+    </div>
+    <div style="text-align:center;min-width:60px;">
+      <div style="font-size:0.72rem;color:var(--purple);font-weight:600;">+{{ session.xp_earned }} XP</div>
+    </div>
+    <a href="{% url 'interview_result' session.id %}" class="btn-neon" style="padding:6px 14px;font-size:0.75rem;white-space:nowrap;">
+      <i class="fas fa-eye"></i> View
+    </a>
+  </div>
+  {% empty %}
+  <div style="text-align:center;padding:60px;color:var(--text-dim);">
+    <i class="fas fa-history" style="font-size:3rem;margin-bottom:16px;opacity:0.2;display:block;"></i>
+    <p style="margin-bottom:16px;">No completed interviews yet.</p>
+    <a href="{% url 'categories' %}" class="btn-solid"><i class="fas fa-play"></i> Start Your First Interview</a>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

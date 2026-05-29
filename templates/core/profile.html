@@ -1,0 +1,427 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% block title %}Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;">
+
+  <!-- ═══ LEFT: Profile Card ═══ -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Identity card -->
+    <div class="glass-card-static" style="padding:28px;text-align:center;">
+      <!-- Avatar with camera overlay -->
+      <div style="position:relative;display:inline-block;margin-bottom:16px;">
+        <div class="avatar-preview" id="avatarPreview"
+             style="width:90px;height:90px;font-size:2.2rem;margin:0 auto;">
+          {% if profile.avatar %}
+            <img src="{{ profile.avatar.url }}" alt="avatar">
+          {% else %}
+            {{ request.user.username|first|upper }}
+          {% endif %}
+        </div>
+        <button type="button" onclick="document.getElementById('avatarInput').click()"
+                style="position:absolute;bottom:0;right:0;width:26px;height:26px;border-radius:50%;
+                       background:var(--cyan);border:none;display:flex;align-items:center;
+                       justify-content:center;font-size:0.7rem;color:#000;cursor:pointer;
+                       box-shadow:0 0 10px rgba(0,212,255,0.5);">
+          <i class="fas fa-camera"></i>
+        </button>
+      </div>
+
+      <h2 style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;
+                 color:var(--text-bright);margin-bottom:4px;">
+        {{ request.user.get_full_name|default:request.user.username }}
+      </h2>
+      <div style="color:var(--text-dim);font-size:0.82rem;margin-bottom:4px;">
+        @{{ request.user.username }}
+      </div>
+      <div style="color:var(--text-dim);font-size:0.8rem;margin-bottom:16px;">
+        {{ request.user.email }}
+      </div>
+
+      <!-- Rank badge -->
+      <div class="rank-badge"
+           style="color:{{ level_info.color }};border-color:{{ level_info.color }}33;
+                  background:{{ level_info.color }}12;margin-bottom:16px;display:inline-flex;">
+        <i class="fas fa-shield-alt"></i> {{ level_info.name }}
+      </div>
+
+      <!-- XP Bar -->
+      <div style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.7rem;
+                    color:var(--text-dim);margin-bottom:6px;">
+          <span>{{ profile.xp_points }} XP</span>
+          {% if level_info.next %}
+            <span>Next: {{ level_info.next }} XP</span>
+          {% else %}
+            <span>Max Level</span>
+          {% endif %}
+        </div>
+        <div class="xp-bar-wrap">
+          <div class="xp-bar-fill" data-width="{{ level_info.progress }}%"
+               style="width:0%;"></div>
+        </div>
+      </div>
+
+      <!-- Stats grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+        <div style="background:rgba(0,212,255,0.05);border:1px solid var(--border);
+                    border-radius:10px;padding:12px;">
+          <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;
+                      color:var(--cyan);">{{ profile.total_interviews }}</div>
+          <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;
+                      text-transform:uppercase;">Interviews</div>
+        </div>
+        <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.12);
+                    border-radius:10px;padding:12px;">
+          <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;
+                      color:var(--green);">{{ profile.average_score }}%</div>
+          <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;
+                      text-transform:uppercase;">Avg Score</div>
+        </div>
+        <div style="background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.12);
+                    border-radius:10px;padding:12px;">
+          <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;
+                      color:var(--gold);">{{ profile.xp_points }}</div>
+          <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;
+                      text-transform:uppercase;">XP Points</div>
+        </div>
+        <div style="background:rgba(255,107,157,0.05);border:1px solid rgba(255,107,157,0.12);
+                    border-radius:10px;padding:12px;">
+          <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;
+                      color:var(--pink);">{{ profile.streak_days }}</div>
+          <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;
+                      text-transform:uppercase;">Day Streak</div>
+        </div>
+      </div>
+
+      {% if profile.bio %}
+      <div style="color:var(--text-dim);font-size:0.85rem;line-height:1.6;text-align:left;
+                  padding:12px;background:rgba(255,255,255,0.02);border-radius:8px;
+                  border:1px solid var(--border);">
+        {{ profile.bio }}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Badges -->
+    {% if badges %}
+    <div class="glass-card-static" style="padding:20px;">
+      <h3 style="font-family:'Orbitron',monospace;font-size:0.78rem;font-weight:700;
+                 letter-spacing:2px;color:var(--text-bright);margin-bottom:14px;">
+        <i class="fas fa-medal" style="color:var(--gold);margin-right:8px;"></i>Achievements
+      </h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;">
+        {% for badge in badges %}
+        <div class="badge-item">
+          <div class="badge-icon"
+               style="background:{{ badge.color }}18;color:{{ badge.color }};
+                      border:1px solid {{ badge.color }}33;">
+            <i class="{{ badge.icon }}"></i>
+          </div>
+          <div class="badge-name">{{ badge.name }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Category breakdown -->
+    {% if cat_stats %}
+    <div class="glass-card-static" style="padding:20px;">
+      <h3 style="font-family:'Orbitron',monospace;font-size:0.78rem;font-weight:700;
+                 letter-spacing:2px;color:var(--text-bright);margin-bottom:14px;">
+        <i class="fas fa-chart-pie" style="color:var(--purple);margin-right:8px;"></i>By Category
+      </h3>
+      {% for cat_name, stats in cat_stats.items %}
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:5px;">
+          <span style="color:var(--text-mid);display:flex;align-items:center;gap:6px;">
+            <i class="{{ stats.icon }}" style="color:{{ stats.color }};"></i> {{ cat_name }}
+          </span>
+          <span style="color:{{ stats.color }};font-weight:700;
+                       font-family:'Orbitron',monospace;font-size:0.75rem;">{{ stats.avg }}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" data-width="{{ stats.avg }}%"
+               style="width:0%;background:linear-gradient(90deg,{{ stats.color }},{{ stats.color }}88);
+                      box-shadow:0 0 8px {{ stats.color }}66;"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+  <!-- ═══ END LEFT ═══ -->
+
+  <!-- ═══ RIGHT: Edit Form ═══ -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <div class="glass-card-static" style="padding:28px;">
+      <h3 style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;
+                 letter-spacing:2px;color:var(--cyan);margin-bottom:24px;">
+        <i class="fas fa-edit"></i> Edit Profile
+      </h3>
+
+      <form method="post" enctype="multipart/form-data" id="profileForm">
+        {% csrf_token %}
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div>
+            <label class="form-label">First Name</label>
+            {{ form.first_name }}
+          </div>
+          <div>
+            <label class="form-label">Last Name</label>
+            {{ form.last_name }}
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label class="form-label">Email Address</label>
+          {{ form.email }}
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label class="form-label">Bio</label>
+          {{ form.bio }}
+        </div>
+
+        <!-- Skills -->
+        <div style="margin-bottom:16px;">
+          <label class="form-label">Skills <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;">(comma-separated)</span></label>
+          {{ form.skills }}
+        </div>
+
+        <!-- Experience + Links -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div>
+            <label class="form-label">Years of Experience</label>
+            {{ form.experience_years }}
+          </div>
+          <div>
+            <label class="form-label">GitHub URL</label>
+            {{ form.github_url }}
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label class="form-label">LinkedIn URL</label>
+          {{ form.linkedin_url }}
+        </div>
+
+        <!-- Resume Upload -->
+        <div style="margin-bottom:16px;">
+          <label class="form-label">Resume <span style="color:var(--text-dim);font-weight:400;text-transform:none;">(PDF)</span></label>
+          {% if profile.resume %}
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:8px;margin-bottom:8px;">
+            <i class="fas fa-file-pdf" style="color:var(--green);"></i>
+            <span style="font-size:0.85rem;color:var(--green);">Resume uploaded</span>
+            <a href="{{ profile.resume.url }}" target="_blank" style="margin-left:auto;font-size:0.75rem;color:var(--cyan);text-decoration:none;"><i class="fas fa-download"></i> Download</a>
+          </div>
+          {% endif %}
+          {{ form.resume }}
+        </div>
+
+        <!-- ── Futuristic Avatar Upload ── -->
+        <div style="margin-bottom:24px;">
+          <label class="form-label">Profile Avatar</label>
+          <div class="avatar-upload-zone" id="avatarZone">
+            <i class="fas fa-cloud-upload-alt"
+               style="font-size:2rem;color:var(--cyan);margin-bottom:10px;display:block;
+                      filter:drop-shadow(0 0 8px rgba(0,212,255,0.6));"></i>
+            <div style="font-size:0.92rem;color:var(--text-mid);margin-bottom:4px;font-weight:600;">
+              Drag &amp; drop or click to upload
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-dim);">PNG, JPG, GIF · Max 5MB</div>
+            <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display:none;">
+          </div>
+          <div id="uploadFileName"
+               style="font-size:0.78rem;color:var(--green);margin-top:6px;display:none;">
+            <i class="fas fa-check-circle"></i> <span id="fileNameText"></span>
+          </div>
+        </div>
+
+        <!-- ── Accent Color Picker ── -->
+        <div style="margin-bottom:28px;">
+          <label class="form-label">Accent Color</label>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:4px;">
+
+            <label class="color-swatch-label" title="Cyan">
+              <input type="radio" name="theme_accent" value="#00d4ff"
+                     {% if profile.theme_accent == '#00d4ff' or not profile.theme_accent %}checked{% endif %}>
+              <span class="color-swatch" style="background:#00d4ff;box-shadow:0 0 10px #00d4ff66;"></span>
+            </label>
+
+            <label class="color-swatch-label" title="Green">
+              <input type="radio" name="theme_accent" value="#00ff88"
+                     {% if profile.theme_accent == '#00ff88' %}checked{% endif %}>
+              <span class="color-swatch" style="background:#00ff88;box-shadow:0 0 10px #00ff8866;"></span>
+            </label>
+
+            <label class="color-swatch-label" title="Pink">
+              <input type="radio" name="theme_accent" value="#ff6b9d"
+                     {% if profile.theme_accent == '#ff6b9d' %}checked{% endif %}>
+              <span class="color-swatch" style="background:#ff6b9d;box-shadow:0 0 10px #ff6b9d66;"></span>
+            </label>
+
+            <label class="color-swatch-label" title="Gold">
+              <input type="radio" name="theme_accent" value="#ffd700"
+                     {% if profile.theme_accent == '#ffd700' %}checked{% endif %}>
+              <span class="color-swatch" style="background:#ffd700;box-shadow:0 0 10px #ffd70066;"></span>
+            </label>
+
+            <label class="color-swatch-label" title="Purple">
+              <input type="radio" name="theme_accent" value="#7b68ee"
+                     {% if profile.theme_accent == '#7b68ee' %}checked{% endif %}>
+              <span class="color-swatch" style="background:#7b68ee;box-shadow:0 0 10px #7b68ee66;"></span>
+            </label>
+
+            <label class="color-swatch-label" title="Orange">
+              <input type="radio" name="theme_accent" value="#ff8c00"
+                     {% if profile.theme_accent == '#ff8c00' %}checked{% endif %}>
+              <span class="color-swatch" style="background:#ff8c00;box-shadow:0 0 10px #ff8c0066;"></span>
+            </label>
+
+          </div>
+          <div style="font-size:0.72rem;color:var(--text-dim);margin-top:8px;">
+            Selected: <span id="accentLabel" style="color:var(--cyan);font-weight:600;">
+              {{ profile.theme_accent|default:'#00d4ff' }}
+            </span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-solid">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </form>
+    </div>
+
+    <!-- Recent Sessions -->
+    {% if sessions %}
+    <div class="glass-card-static" style="padding:24px;">
+      <h3 style="font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;
+                 letter-spacing:2px;color:var(--pink);margin-bottom:16px;">
+        <i class="fas fa-history"></i> Recent Sessions
+      </h3>
+      {% for session in sessions|slice:":6" %}
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;
+                  border-bottom:1px solid var(--border);">
+        <div style="width:34px;height:34px;border-radius:9px;
+                    background:{{ session.category.color }}18;
+                    color:{{ session.category.color }};
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:0.85rem;flex-shrink:0;">
+          <i class="{{ session.category.icon }}"></i>
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:0.88rem;color:var(--text-bright);">
+            {{ session.category.name }}
+          </div>
+          <div style="font-size:0.72rem;color:var(--text-dim);">
+            {{ session.created_at|date:"M d, Y" }} · {{ session.get_difficulty_filter_display }}
+          </div>
+        </div>
+        <div style="font-family:'Orbitron',monospace;font-weight:700;font-size:0.9rem;
+                    color:{% if session.percentage >= 70 %}var(--green)
+                          {% elif session.percentage >= 50 %}var(--gold)
+                          {% else %}var(--red){% endif %};">
+          {{ session.percentage }}%
+        </div>
+        <a href="{% url 'interview_result' session.id %}"
+           style="color:var(--text-dim);font-size:0.85rem;text-decoration:none;
+                  transition:color 0.2s;"
+           onmouseover="this.style.color='var(--cyan)'"
+           onmouseout="this.style.color='var(--text-dim)'">
+          <i class="fas fa-eye"></i>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+  <!-- ═══ END RIGHT ═══ -->
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  /* ── Avatar drag-and-drop ── */
+  const zone    = document.getElementById('avatarZone');
+  const input   = document.getElementById('avatarInput');
+  const preview = document.getElementById('avatarPreview');
+  const fnLabel = document.getElementById('uploadFileName');
+  const fnText  = document.getElementById('fileNameText');
+
+  if (zone && input) {
+    zone.addEventListener('click', () => input.click());
+
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        setFile(file);
+      }
+    });
+
+    input.addEventListener('change', () => {
+      if (input.files[0]) setFile(input.files[0]);
+    });
+  }
+
+  function setFile(file) {
+    /* Show filename */
+    if (fnLabel && fnText) {
+      fnText.textContent = file.name;
+      fnLabel.style.display = 'block';
+    }
+    /* Live preview */
+    const reader = new FileReader();
+    reader.onload = e => {
+      if (preview) {
+        preview.innerHTML =
+          '<img src="' + e.target.result +
+          '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ── Accent color picker ── */
+  const accentLabel = document.getElementById('accentLabel');
+  document.querySelectorAll('input[name="theme_accent"]').forEach(radio => {
+    /* Style the checked swatch on load */
+    if (radio.checked) markSwatch(radio);
+
+    radio.addEventListener('change', function () {
+      document.querySelectorAll('.color-swatch').forEach(s => {
+        s.style.outline = 'none';
+        s.style.transform = 'scale(1)';
+      });
+      markSwatch(this);
+      if (accentLabel) accentLabel.textContent = this.value;
+    });
+  });
+
+  function markSwatch(radio) {
+    const swatch = radio.nextElementSibling;
+    if (swatch) {
+      swatch.style.outline = '3px solid #fff';
+      swatch.style.outlineOffset = '2px';
+      swatch.style.transform = 'scale(1.2)';
+    }
+  }
+})();
+</script>
+{% endblock %}

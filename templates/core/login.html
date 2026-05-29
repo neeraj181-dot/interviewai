@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Login — InterviewAI{% endblock %}
+
+{% block body %}
+<canvas id="particleCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></canvas>
+<div class="auth-bg-grid"></div>
+
+<div class="auth-page">
+  <div class="auth-container">
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert-neon alert-{{ message.tags|default:'info' }}" style="margin-bottom:14px;">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon"><i class="fas fa-brain"></i></div>
+        <div class="auth-logo-name">InterviewAI</div>
+        <div class="auth-logo-tag">Premium AI Interview Platform</div>
+      </div>
+
+      <div class="auth-title">Welcome Back</div>
+      <div class="auth-sub">Sign in to continue your interview journey</div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div style="margin-bottom:18px;">
+          <label class="form-label">Username</label>
+          {{ form.username }}
+          {% if form.username.errors %}<div class="form-error">{{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+        <div style="margin-bottom:24px;">
+          <label class="form-label">Password</label>
+          {{ form.password }}
+          {% if form.password.errors %}<div class="form-error">{{ form.password.errors.0 }}</div>{% endif %}
+        </div>
+        {% if form.non_field_errors %}
+        <div class="alert-neon alert-error" style="margin-bottom:16px;">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+        <button type="submit" class="btn-solid" style="width:100%;justify-content:center;">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </button>
+      </form>
+
+      <div class="auth-divider"><span>New to InterviewAI?</span></div>
+      <div style="text-align:center;">
+        <a href="{% url 'register' %}" class="auth-link">Create your account →</a>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:20px;color:var(--text-ghost);font-size:0.75rem;">
+      © 2024 InterviewAI — Powered by AI
+    </div>
+  </div>
+</div>
+{% endblock %}

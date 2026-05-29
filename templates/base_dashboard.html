@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Dashboard{% endblock %} — InterviewAI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body data-accent="{% if request.user.is_authenticated and request.user.profile %}{{ request.user.profile.theme_accent }}{% else %}#00d4ff{% endif %}">
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon"><i class="fas fa-brain"></i></div>
+      <div class="logo-text">InterviewAI</div>
+    </div>
+    <div class="logo-sub">Premium AI Platform</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <div class="nav-item">
+      <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <span class="nav-icon"><i class="fas fa-th-large"></i></span> Dashboard
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="{% url 'interview_prep' %}" class="nav-link {% if request.resolver_match.url_name == 'interview_prep' or request.resolver_match.url_name == 'categories' or request.resolver_match.url_name == 'course_list' %}active{% endif %}">
+        <span class="nav-icon"><i class="fas fa-brain"></i></span> Interview Prep
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="{% url 'company_list' %}" class="nav-link {% if request.resolver_match.url_name == 'company_list' or request.resolver_match.url_name == 'company_detail' %}active{% endif %}">
+        <span class="nav-icon"><i class="fas fa-building"></i></span> Companies
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="{% url 'history' %}" class="nav-link {% if request.resolver_match.url_name == 'history' %}active{% endif %}">
+        <span class="nav-icon"><i class="fas fa-history"></i></span> History
+      </a>
+    </div>
+
+    <div class="nav-section" style="margin-top:8px;">Account</div>
+    <div class="nav-item">
+      <a href="{% url 'profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+        <span class="nav-icon"><i class="fas fa-user-astronaut"></i></span> Profile
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="{% url 'logout' %}" class="nav-link">
+        <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Logout
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="{% url 'profile' %}" class="sidebar-user" style="text-decoration:none;">
+      <div class="sidebar-avatar">
+        {% if request.user.is_authenticated and request.user.profile and request.user.profile.avatar %}
+          <img src="{{ request.user.profile.avatar.url }}" alt="avatar">
+        {% else %}
+          {{ request.user.username|first|upper }}
+        {% endif %}
+      </div>
+      <div>
+        <div class="sidebar-uname">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="sidebar-role">
+          {% if request.user.is_authenticated %}
+            {% with request.user.profile as p %}
+              {% if p %}{{ p.level }} · {{ p.xp_points }} XP{% else %}Member{% endif %}
+            {% endwith %}
+          {% endif %}
+        </div>
+      </div>
+    </a>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main-content">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-badge">
+        <span class="dot"></span>
+        <span>System Online</span>
+      </div>
+      <a href="{% url 'interview_prep' %}" class="btn-neon" style="padding:7px 16px;font-size:0.78rem;">
+        <i class="fas fa-play"></i> Start Interview
+      </a>
+    </div>
+  </div>
+
+  {% if messages %}
+  <div style="padding:14px 28px 0;">
+    {% for message in messages %}
+    <div class="alert-neon alert-{{ message.tags|default:'info' }}">
+      <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="page-content">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<!-- ═══ LEVEL SELECT MODAL ═══ -->
+<div id="levelModal" style="display:none;position:fixed;inset:0;z-index:2000;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);transition:opacity 0.3s;" onclick="if(event.target===this)closeLevelModal()">
+  <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:36px 32px;max-width:420px;width:90%;position:relative;">
+    <button onclick="closeLevelModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-dim);font-size:1.1rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.7rem;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;">Select Difficulty</div>
+      <div class="modal-cat-name" style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--text-bright);"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="level-btn" data-level="easy" style="background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);color:var(--green);padding:14px 20px;border-radius:10px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;letter-spacing:1px;text-align:left;transition:all 0.3s;display:flex;align-items:center;gap:12px;" onmouseover="this.style.background='rgba(0,255,136,0.15)'" onmouseout="this.style.background='rgba(0,255,136,0.08)'">
+        <i class="fas fa-seedling"></i> <div><div>Beginner</div><div style="font-size:0.75rem;opacity:0.7;font-weight:400;">10 questions · Foundational concepts</div></div>
+      </button>
+      <button class="level-btn" data-level="medium" style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.3);color:var(--gold);padding:14px 20px;border-radius:10px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;letter-spacing:1px;text-align:left;transition:all 0.3s;display:flex;align-items:center;gap:12px;" onmouseover="this.style.background='rgba(255,215,0,0.15)'" onmouseout="this.style.background='rgba(255,215,0,0.08)'">
+        <i class="fas fa-fire"></i> <div><div>Intermediate</div><div style="font-size:0.75rem;opacity:0.7;font-weight:400;">10 questions · Applied knowledge</div></div>
+      </button>
+      <button class="level-btn" data-level="hard" style="background:rgba(255,107,157,0.08);border:1px solid rgba(255,107,157,0.3);color:var(--pink);padding:14px 20px;border-radius:10px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;letter-spacing:1px;text-align:left;transition:all 0.3s;display:flex;align-items:center;gap:12px;" onmouseover="this.style.background='rgba(255,107,157,0.15)'" onmouseout="this.style.background='rgba(255,107,157,0.08)'">
+        <i class="fas fa-skull"></i> <div><div>Advanced</div><div style="font-size:0.75rem;opacity:0.7;font-weight:400;">10 questions · Expert-level depth</div></div>
+      </button>
+      <button class="level-btn" data-level="all" style="background:rgba(123,104,238,0.08);border:1px solid rgba(123,104,238,0.3);color:var(--purple);padding:14px 20px;border-radius:10px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;letter-spacing:1px;text-align:left;transition:all 0.3s;display:flex;align-items:center;gap:12px;" onmouseover="this.style.background='rgba(123,104,238,0.15)'" onmouseout="this.style.background='rgba(123,104,238,0.08)'">
+        <i class="fas fa-infinity"></i> <div><div>All Levels</div><div style="font-size:0.75rem;opacity:0.7;font-weight:400;">30 questions · Full challenge</div></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

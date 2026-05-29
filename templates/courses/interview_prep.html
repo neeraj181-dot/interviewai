@@ -1,0 +1,202 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% block title %}Interview Prep{% endblock %}
+{% block page_title %}Interview Prep{% endblock %}
+
+{% block extra_css %}
+<style>
+.prep-card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+  cursor: pointer;
+}
+.prep-card::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: var(--c-color, var(--cyan));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.35s ease;
+  box-shadow: 0 0 8px var(--c-color, var(--cyan));
+}
+.prep-card:hover::after { transform: scaleX(1); }
+.prep-card:hover {
+  border-color: var(--c-color, var(--cyan));
+  transform: translateY(-5px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+}
+.prep-card .card-glow {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, var(--c-glow, rgba(0,212,255,0.06)), transparent 70%);
+  opacity: 0; transition: opacity 0.4s;
+  pointer-events: none;
+}
+.prep-card:hover .card-glow { opacity: 1; }
+.track-divider {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+}
+.track-divider .line {
+  width: 3px; height: 22px; border-radius: 2px;
+}
+.tab-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 16px; border-radius: 20px;
+  font-size: 0.82rem; font-weight: 600; letter-spacing: 0.3px;
+  text-decoration: none; transition: all 0.25s ease; cursor: pointer;
+  border: 1px solid var(--border); color: var(--text-dim);
+  background: var(--glass);
+}
+.tab-pill:hover { color: var(--text-bright); border-color: var(--border-hover); }
+.tab-pill.active {
+  background: var(--cyan); color: #000;
+  border-color: var(--cyan);
+  box-shadow: 0 0 16px rgba(0,212,255,0.4);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div style="margin-bottom:24px;">
+  <h1 style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;margin-bottom:6px;">
+    Interview <span class="neon-cyan">Preparation</span>
+  </h1>
+  <p style="color:var(--text-dim);">All interview tracks and learning paths in one place. Pick a topic and difficulty to begin.</p>
+</div>
+
+<!-- Tab Filter -->
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;">
+  {% for value, label, icon in tabs %}
+  <a href="?track={{ value }}" class="tab-pill {% if active_track == value %}active{% endif %}">
+    <i class="{{ icon }}" style="font-size:0.78rem;"></i> {{ label }}
+  </a>
+  {% endfor %}
+</div>
+
+<!-- ═══ INTERVIEW TRACKS SECTION ═══ -->
+{% if show_categories %}
+<div style="margin-bottom:36px;">
+  <div class="track-divider">
+    <div class="line" style="background:var(--green);box-shadow:0 0 8px var(--green);"></div>
+    <h2 style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);">
+      <i class="fas fa-comments" style="color:var(--green);margin-right:8px;"></i>Interview Tracks
+    </h2>
+    <span style="font-size:0.72rem;color:var(--text-dim);background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);padding:3px 10px;border-radius:20px;">{{ categories|length }} tracks</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;">
+    {% for cat in categories %}
+    <div class="prep-card" style="--c-color:{{ cat.color }};--c-glow:{{ cat.color }}0d;"
+         onclick="openInterviewLevelModal('{{ cat.slug }}','{{ cat.name }}','{{ cat.color }}')">
+      <div class="card-glow"></div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+        <div style="width:48px;height:48px;border-radius:13px;background:{{ cat.color }}18;color:{{ cat.color }};display:flex;align-items:center;justify-content:center;font-size:1.3rem;border:1px solid {{ cat.color }}22;transition:box-shadow 0.3s;">
+          <i class="{{ cat.icon }}"></i>
+        </div>
+        {% if cat.user_sessions %}
+        <div style="text-align:right;">
+          <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:{% if cat.user_avg >= 70 %}var(--green){% elif cat.user_avg >= 50 %}var(--gold){% else %}var(--red){% endif %};">{{ cat.user_avg }}%</div>
+          <div style="font-size:0.62rem;color:var(--text-dim);">{{ cat.user_sessions }} done</div>
+        </div>
+        {% else %}
+        <span style="font-size:0.62rem;color:var(--text-dim);background:rgba(255,255,255,0.04);padding:3px 9px;border-radius:20px;border:1px solid var(--border);">{{ cat.question_count }}Q</span>
+        {% endif %}
+      </div>
+      <div style="font-family:'Orbitron',monospace;font-size:0.88rem;font-weight:700;color:{{ cat.color }};margin-bottom:6px;letter-spacing:0.5px;">{{ cat.name }}</div>
+      <div style="font-size:0.8rem;color:var(--text-dim);line-height:1.5;margin-bottom:12px;">{{ cat.description }}</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;">
+        <span style="font-size:0.65rem;padding:2px 8px;border-radius:20px;background:rgba(0,255,136,0.08);color:var(--green);border:1px solid rgba(0,255,136,0.2);">{{ cat.beginner_count }} Beginner</span>
+        <span style="font-size:0.65rem;padding:2px 8px;border-radius:20px;background:rgba(255,215,0,0.08);color:var(--gold);border:1px solid rgba(255,215,0,0.2);">{{ cat.intermediate_count }} Mid</span>
+        <span style="font-size:0.65rem;padding:2px 8px;border-radius:20px;background:rgba(255,107,157,0.08);color:var(--pink);border:1px solid rgba(255,107,157,0.2);">{{ cat.advanced_count }} Adv</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);">
+        <span style="font-size:0.7rem;color:var(--text-dim);"><i class="fas fa-question-circle"></i> {{ cat.question_count }} questions</span>
+        <span style="font-size:0.72rem;font-weight:700;color:{{ cat.color }};letter-spacing:1px;text-transform:uppercase;">Start →</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══ COURSES SECTION ═══ -->
+{% if show_courses %}
+
+{% if active_track == 'all' or active_track == 'programming' %}
+<div style="margin-bottom:32px;">
+  <div class="track-divider">
+    <div class="line" style="background:var(--cyan);box-shadow:0 0 8px var(--cyan);"></div>
+    <h2 style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);">
+      <i class="fas fa-code" style="color:var(--cyan);margin-right:8px;"></i>Programming
+    </h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;">
+    {% for course in courses %}{% if course.track == 'programming' %}{% include "courses/_prep_card.html" %}{% endif %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if active_track == 'all' or active_track == 'ai' %}
+<div style="margin-bottom:32px;">
+  <div class="track-divider">
+    <div class="line" style="background:var(--pink);box-shadow:0 0 8px var(--pink);"></div>
+    <h2 style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);">
+      <i class="fas fa-brain" style="color:var(--pink);margin-right:8px;"></i>AI &amp; Future Technologies
+    </h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;">
+    {% for course in courses %}{% if course.track == 'ai' %}{% include "courses/_prep_card.html" %}{% endif %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if active_track == 'all' or active_track == 'placement' %}
+<div style="margin-bottom:32px;">
+  <div class="track-divider">
+    <div class="line" style="background:var(--gold);box-shadow:0 0 8px var(--gold);"></div>
+    <h2 style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);">
+      <i class="fas fa-briefcase" style="color:var(--gold);margin-right:8px;"></i>Placement Preparation
+    </h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;">
+    {% for course in courses %}{% if course.track == 'placement' %}{% include "courses/_prep_card.html" %}{% endif %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openInterviewLevelModal(slug, name, color) {
+  const modal = document.getElementById('levelModal');
+  if (!modal) return;
+  modal.querySelector('.modal-cat-name').textContent = name;
+  modal.querySelectorAll('.level-btn').forEach(btn => {
+    btn.onclick = () => {
+      window.location.href = '/interview/start/' + slug + '/?difficulty=' + btn.getAttribute('data-level');
+    };
+  });
+  modal.style.display = 'flex';
+  setTimeout(() => modal.classList.add('open'), 10);
+}
+function openCourseLevelModal(slug, name, color) {
+  const modal = document.getElementById('levelModal');
+  if (!modal) return;
+  modal.querySelector('.modal-cat-name').textContent = name;
+  modal.querySelectorAll('.level-btn').forEach(btn => {
+    btn.onclick = () => {
+      window.location.href = '/courses/start/' + slug + '/?difficulty=' + btn.getAttribute('data-level');
+    };
+  });
+  modal.style.display = 'flex';
+  setTimeout(() => modal.classList.add('open'), 10);
+}
+</script>
+{% endblock %}

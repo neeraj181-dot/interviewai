@@ -1,0 +1,221 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% block title %}My Applications{% endblock %}
+{% block page_title %}My Applications{% endblock %}
+
+{% block content %}
+
+<!-- Stats Row -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:28px;">
+  <div class="stat-card fade-in-up stagger-1" style="--accent:var(--cyan);">
+    <div class="stat-icon" style="background:rgba(0,212,255,0.1);color:var(--cyan);"><i class="fas fa-paper-plane"></i></div>
+    <div class="stat-value neon-cyan" data-count="{{ applications|length }}" data-suffix="">0</div>
+    <div class="stat-label">Total Applied</div>
+  </div>
+  {% if status_counts.selected %}
+  <div class="stat-card fade-in-up stagger-2" style="--accent:var(--green);">
+    <div class="stat-icon" style="background:rgba(0,255,136,0.1);color:var(--green);"><i class="fas fa-trophy"></i></div>
+    <div class="stat-value neon-green" data-count="{{ status_counts.selected }}" data-suffix="">0</div>
+    <div class="stat-label">Selected</div>
+  </div>
+  {% endif %}
+  {% if status_counts.interview_scheduled %}
+  <div class="stat-card fade-in-up stagger-3" style="--accent:var(--gold);">
+    <div class="stat-icon" style="background:rgba(255,215,0,0.1);color:var(--gold);"><i class="fas fa-calendar-check"></i></div>
+    <div class="stat-value neon-gold" data-count="{{ status_counts.interview_scheduled }}" data-suffix="">0</div>
+    <div class="stat-label">Interviews Scheduled</div>
+  </div>
+  {% endif %}
+  {% if status_counts.in_progress %}
+  <div class="stat-card fade-in-up stagger-4" style="--accent:var(--pink);">
+    <div class="stat-icon" style="background:rgba(255,107,157,0.1);color:var(--pink);"><i class="fas fa-spinner"></i></div>
+    <div class="stat-value neon-pink" data-count="{{ status_counts.in_progress }}" data-suffix="">0</div>
+    <div class="stat-label">In Progress</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Pipeline Visual -->
+<div class="glass-card-static" style="padding:24px;margin-bottom:28px;">
+  <h3 style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);margin-bottom:20px;">
+    <i class="fas fa-stream" style="color:var(--cyan);margin-right:8px;"></i>Application Pipeline
+  </h3>
+  <div style="display:flex;align-items:center;gap:0;overflow-x:auto;padding-bottom:8px;">
+
+    <!-- Stage: Applied -->
+    <div style="display:flex;flex-direction:column;align-items:center;min-width:110px;">
+      <div style="width:44px;height:44px;border-radius:50%;
+           background:{% if status_counts.applied %}rgba(0,212,255,0.2){% else %}rgba(255,255,255,0.04){% endif %};
+           border:2px solid {% if status_counts.applied %}var(--cyan){% else %}var(--border){% endif %};
+           display:flex;align-items:center;justify-content:center;font-size:1rem;
+           color:{% if status_counts.applied %}var(--cyan){% else %}var(--text-dim){% endif %};
+           box-shadow:{% if status_counts.applied %}0 0 12px rgba(0,212,255,0.4){% else %}none{% endif %};">
+        <i class="fas fa-paper-plane"></i>
+      </div>
+      <div style="font-size:0.72rem;font-weight:600;margin-top:8px;color:{% if status_counts.applied %}var(--cyan){% else %}var(--text-dim){% endif %};">Applied</div>
+      <div style="font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;color:var(--cyan);">{{ status_counts.applied|default:"0" }}</div>
+    </div>
+
+    <div style="flex:1;height:2px;background:linear-gradient(90deg,{% if status_counts.applied %}var(--cyan){% else %}var(--border){% endif %},{% if status_counts.shortlisted %}var(--purple){% else %}var(--border){% endif %});min-width:30px;"></div>
+
+    <!-- Stage: Shortlisted -->
+    <div style="display:flex;flex-direction:column;align-items:center;min-width:110px;">
+      <div style="width:44px;height:44px;border-radius:50%;
+           background:{% if status_counts.shortlisted %}rgba(123,104,238,0.2){% else %}rgba(255,255,255,0.04){% endif %};
+           border:2px solid {% if status_counts.shortlisted %}var(--purple){% else %}var(--border){% endif %};
+           display:flex;align-items:center;justify-content:center;font-size:1rem;
+           color:{% if status_counts.shortlisted %}var(--purple){% else %}var(--text-dim){% endif %};
+           box-shadow:{% if status_counts.shortlisted %}0 0 12px rgba(123,104,238,0.4){% else %}none{% endif %};">
+        <i class="fas fa-star"></i>
+      </div>
+      <div style="font-size:0.72rem;font-weight:600;margin-top:8px;color:{% if status_counts.shortlisted %}var(--purple){% else %}var(--text-dim){% endif %};">Shortlisted</div>
+      <div style="font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;color:var(--purple);">{{ status_counts.shortlisted|default:"0" }}</div>
+    </div>
+
+    <div style="flex:1;height:2px;background:linear-gradient(90deg,{% if status_counts.shortlisted %}var(--purple){% else %}var(--border){% endif %},{% if status_counts.interview_scheduled %}var(--gold){% else %}var(--border){% endif %});min-width:30px;"></div>
+
+    <!-- Stage: Interview Scheduled -->
+    <div style="display:flex;flex-direction:column;align-items:center;min-width:130px;">
+      <div style="width:44px;height:44px;border-radius:50%;
+           background:{% if status_counts.interview_scheduled %}rgba(255,215,0,0.2){% else %}rgba(255,255,255,0.04){% endif %};
+           border:2px solid {% if status_counts.interview_scheduled %}var(--gold){% else %}var(--border){% endif %};
+           display:flex;align-items:center;justify-content:center;font-size:1rem;
+           color:{% if status_counts.interview_scheduled %}var(--gold){% else %}var(--text-dim){% endif %};
+           box-shadow:{% if status_counts.interview_scheduled %}0 0 12px rgba(255,215,0,0.4){% else %}none{% endif %};">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+      <div style="font-size:0.72rem;font-weight:600;margin-top:8px;color:{% if status_counts.interview_scheduled %}var(--gold){% else %}var(--text-dim){% endif %};">Scheduled</div>
+      <div style="font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;color:var(--gold);">{{ status_counts.interview_scheduled|default:"0" }}</div>
+    </div>
+
+    <div style="flex:1;height:2px;background:linear-gradient(90deg,{% if status_counts.interview_scheduled %}var(--gold){% else %}var(--border){% endif %},{% if status_counts.in_progress %}var(--pink){% else %}var(--border){% endif %});min-width:30px;"></div>
+
+    <!-- Stage: In Progress -->
+    <div style="display:flex;flex-direction:column;align-items:center;min-width:110px;">
+      <div style="width:44px;height:44px;border-radius:50%;
+           background:{% if status_counts.in_progress %}rgba(255,107,157,0.2){% else %}rgba(255,255,255,0.04){% endif %};
+           border:2px solid {% if status_counts.in_progress %}var(--pink){% else %}var(--border){% endif %};
+           display:flex;align-items:center;justify-content:center;font-size:1rem;
+           color:{% if status_counts.in_progress %}var(--pink){% else %}var(--text-dim){% endif %};
+           box-shadow:{% if status_counts.in_progress %}0 0 12px rgba(255,107,157,0.4){% else %}none{% endif %};">
+        <i class="fas fa-cog"></i>
+      </div>
+      <div style="font-size:0.72rem;font-weight:600;margin-top:8px;color:{% if status_counts.in_progress %}var(--pink){% else %}var(--text-dim){% endif %};">In Progress</div>
+      <div style="font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;color:var(--pink);">{{ status_counts.in_progress|default:"0" }}</div>
+    </div>
+
+    <div style="flex:1;height:2px;background:linear-gradient(90deg,{% if status_counts.in_progress %}var(--pink){% else %}var(--border){% endif %},{% if status_counts.selected %}var(--green){% else %}var(--border){% endif %});min-width:30px;"></div>
+
+    <!-- Stage: Selected -->
+    <div style="display:flex;flex-direction:column;align-items:center;min-width:110px;">
+      <div style="width:44px;height:44px;border-radius:50%;
+           background:{% if status_counts.selected %}rgba(0,255,136,0.2){% else %}rgba(255,255,255,0.04){% endif %};
+           border:2px solid {% if status_counts.selected %}var(--green){% else %}var(--border){% endif %};
+           display:flex;align-items:center;justify-content:center;font-size:1rem;
+           color:{% if status_counts.selected %}var(--green){% else %}var(--text-dim){% endif %};
+           box-shadow:{% if status_counts.selected %}0 0 12px rgba(0,255,136,0.4){% else %}none{% endif %};">
+        <i class="fas fa-trophy"></i>
+      </div>
+      <div style="font-size:0.72rem;font-weight:600;margin-top:8px;color:{% if status_counts.selected %}var(--green){% else %}var(--text-dim){% endif %};">Selected</div>
+      <div style="font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;color:var(--green);">{{ status_counts.selected|default:"0" }}</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Applications List -->
+<div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+    <h2 style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);">
+      <i class="fas fa-list" style="color:var(--pink);margin-right:8px;"></i>All Applications
+    </h2>
+    <a href="{% url 'company_list' %}" class="btn-neon" style="padding:7px 16px;font-size:0.78rem;">
+      <i class="fas fa-plus"></i> Apply to More
+    </a>
+  </div>
+
+  {% for app in applications %}
+  <div class="glass-card" style="padding:20px;margin-bottom:14px;transition:all 0.3s;"
+       onmouseover="this.style.borderColor='{{ app.company.color }}44'"
+       onmouseout="this.style.borderColor='var(--border)'">
+    <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;">
+
+      <!-- Company Logo -->
+      <div style="width:50px;height:50px;border-radius:13px;background:{{ app.company.color }}18;color:{{ app.company.color }};display:flex;align-items:center;justify-content:center;font-size:1.2rem;border:1px solid {{ app.company.color }}33;flex-shrink:0;">
+        <i class="{{ app.company.logo_icon }}"></i>
+      </div>
+
+      <!-- Info -->
+      <div style="flex:1;min-width:200px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+          <span style="font-family:'Orbitron',monospace;font-size:0.95rem;font-weight:700;color:var(--text-bright);">{{ app.company.name }}</span>
+          <!-- Status Badge -->
+          <div style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:{{ app.status_color }}15;border:1px solid {{ app.status_color }}33;">
+            <i class="{{ app.status_icon }}" style="color:{{ app.status_color }};font-size:0.7rem;"></i>
+            <span style="font-size:0.7rem;font-weight:700;color:{{ app.status_color }};">{{ app.get_status_display }}</span>
+          </div>
+        </div>
+        <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:10px;">
+          Applied {{ app.applied_at|date:"M d, Y" }}
+          &nbsp;·&nbsp; {{ app.company.open_positions }} positions
+          &nbsp;·&nbsp; {{ app.company.salary_display }}
+          &nbsp;·&nbsp; {{ app.company.get_difficulty_display }}
+        </div>
+
+        <!-- Bookings -->
+        {% if app.bookings.all %}
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          {% for booking in app.bookings.all %}
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:rgba(123,104,238,0.06);border:1px solid rgba(123,104,238,0.2);">
+            <i class="fas fa-calendar-check" style="color:var(--purple);font-size:0.8rem;flex-shrink:0;"></i>
+            <span style="font-size:0.78rem;color:var(--text-mid);">{{ booking.slot.get_round_type_display }} — {{ booking.slot.date|date:"M d, Y" }} at {{ booking.slot.time_start|time:"H:i" }}</span>
+            <span style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;color:var(--cyan);margin-left:auto;flex-shrink:0;">{{ booking.confirmation_code }}</span>
+            <span style="font-size:0.68rem;padding:2px 8px;border-radius:10px;flex-shrink:0;
+                 background:{% if booking.status == 'confirmed' %}rgba(0,255,136,0.1){% else %}rgba(255,71,87,0.1){% endif %};
+                 color:{% if booking.status == 'confirmed' %}var(--green){% else %}var(--red){% endif %};
+                 border:1px solid {% if booking.status == 'confirmed' %}rgba(0,255,136,0.3){% else %}rgba(255,71,87,0.3){% endif %};">
+              {{ booking.get_status_display }}
+            </span>
+            {% if booking.status == 'confirmed' %}
+            <a href="{% url 'cancel_booking' booking.id %}"
+               style="font-size:0.68rem;color:var(--red);text-decoration:none;flex-shrink:0;"
+               onclick="return confirm('Cancel this booking?')">
+              <i class="fas fa-times"></i>
+            </a>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0;">
+        <a href="{% url 'company_detail' app.company.slug %}" class="btn-ghost" style="padding:7px 14px;font-size:0.75rem;">
+          <i class="fas fa-eye"></i> View
+        </a>
+        {% if app.company.careers_url %}
+        <a href="{{ app.company.careers_url }}" target="_blank" rel="noopener noreferrer"
+           class="btn-neon" style="padding:7px 14px;font-size:0.75rem;">
+          <i class="fas fa-external-link-alt"></i> Careers
+        </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  {% empty %}
+  <div style="text-align:center;padding:60px;color:var(--text-dim);">
+    <i class="fas fa-paper-plane" style="font-size:3rem;margin-bottom:16px;opacity:0.2;display:block;"></i>
+    <p style="margin-bottom:8px;font-size:1rem;">No applications yet.</p>
+    <p style="font-size:0.85rem;margin-bottom:24px;">Start applying to companies to track your progress here.</p>
+    <a href="{% url 'company_list' %}" class="btn-solid">
+      <i class="fas fa-building"></i> Browse Companies
+    </a>
+  </div>
+  {% endfor %}
+
+</div>
+
+{% endblock %}

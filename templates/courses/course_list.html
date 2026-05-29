@@ -1,0 +1,176 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% block title %}Courses{% endblock %}
+{% block page_title %}Learning Tracks{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div style="margin-bottom:24px;">
+  <h1 style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;margin-bottom:6px;">
+    Master Your <span class="neon-cyan">Skills</span>
+  </h1>
+  <p style="color:var(--text-dim);">Choose a track and difficulty level to start your AI-powered learning session.</p>
+</div>
+
+<!-- Track Filter Tabs -->
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
+  {% for value, label in tracks %}
+  <a href="?track={{ value }}"
+     style="padding:7px 18px;border-radius:20px;font-size:0.82rem;font-weight:600;letter-spacing:0.5px;text-decoration:none;transition:all 0.3s;
+            {% if active_track == value %}background:var(--cyan);color:#000;box-shadow:0 0 16px rgba(0,212,255,0.4);{% else %}background:var(--glass);border:1px solid var(--border);color:var(--text-dim);{% endif %}">
+    {{ label }}
+  </a>
+  {% endfor %}
+</div>
+
+<!-- Programming Track -->
+{% if active_track == 'all' or active_track == 'programming' %}
+<div style="margin-bottom:32px;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <div style="width:3px;height:20px;background:var(--cyan);border-radius:2px;box-shadow:0 0 8px var(--cyan);"></div>
+    <h2 style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);">
+      <i class="fas fa-code" style="color:var(--cyan);margin-right:8px;"></i>Programming
+    </h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;">
+    {% for course in courses %}{% if course.track == 'programming' %}
+    <div class="category-card fade-in-up" style="--cat-color:{{ course.color }};--cat-glow:{{ course.color }}0f;"
+         onclick="openCourseLevelModal('{{ course.slug }}','{{ course.name }}','{{ course.color }}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
+        <div class="cat-icon" style="background:{{ course.color }}18;color:{{ course.color }};">
+          <i class="{{ course.icon }}"></i>
+        </div>
+        {% if course.user_sessions %}
+        <div style="text-align:right;">
+          <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;
+               color:{% if course.user_avg >= 70 %}var(--green){% elif course.user_avg >= 50 %}var(--gold){% else %}var(--red){% endif %};">{{ course.user_avg }}%</div>
+          <div style="font-size:0.65rem;color:var(--text-dim);">{{ course.user_sessions }} done</div>
+        </div>
+        {% else %}
+        <span style="font-size:0.65rem;color:var(--text-dim);background:rgba(255,255,255,0.04);padding:3px 9px;border-radius:20px;border:1px solid var(--border);">{{ course.q_count }}Q</span>
+        {% endif %}
+      </div>
+      <div class="cat-name" style="color:{{ course.color }};">{{ course.name }}</div>
+      <div class="cat-desc">{{ course.description }}</div>
+      <div class="cat-levels">
+        <span class="level-pill easy"><i class="fas fa-seedling"></i> {{ course.beginner_count }}</span>
+        <span class="level-pill medium"><i class="fas fa-fire"></i> {{ course.intermediate_count }}</span>
+        <span class="level-pill hard"><i class="fas fa-skull"></i> {{ course.advanced_count }}</span>
+      </div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.72rem;color:var(--text-dim);"><i class="fas fa-question-circle"></i> {{ course.q_count }} questions</span>
+        <span style="font-size:0.72rem;font-weight:700;color:{{ course.color }};text-transform:uppercase;letter-spacing:1px;">Start →</span>
+      </div>
+    </div>
+    {% endif %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- AI & Future Tech Track -->
+{% if active_track == 'all' or active_track == 'ai' %}
+<div style="margin-bottom:32px;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <div style="width:3px;height:20px;background:var(--pink);border-radius:2px;box-shadow:0 0 8px var(--pink);"></div>
+    <h2 style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);">
+      <i class="fas fa-brain" style="color:var(--pink);margin-right:8px;"></i>AI &amp; Future Technologies
+    </h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;">
+    {% for course in courses %}{% if course.track == 'ai' %}
+    <div class="category-card fade-in-up" style="--cat-color:{{ course.color }};--cat-glow:{{ course.color }}0f;"
+         onclick="openCourseLevelModal('{{ course.slug }}','{{ course.name }}','{{ course.color }}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
+        <div class="cat-icon" style="background:{{ course.color }}18;color:{{ course.color }};">
+          <i class="{{ course.icon }}"></i>
+        </div>
+        {% if course.user_sessions %}
+        <div style="text-align:right;">
+          <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;
+               color:{% if course.user_avg >= 70 %}var(--green){% elif course.user_avg >= 50 %}var(--gold){% else %}var(--red){% endif %};">{{ course.user_avg }}%</div>
+          <div style="font-size:0.65rem;color:var(--text-dim);">{{ course.user_sessions }} done</div>
+        </div>
+        {% else %}
+        <span style="font-size:0.65rem;color:var(--text-dim);background:rgba(255,255,255,0.04);padding:3px 9px;border-radius:20px;border:1px solid var(--border);">{{ course.q_count }}Q</span>
+        {% endif %}
+      </div>
+      <div class="cat-name" style="color:{{ course.color }};">{{ course.name }}</div>
+      <div class="cat-desc">{{ course.description }}</div>
+      <div class="cat-levels">
+        <span class="level-pill easy"><i class="fas fa-seedling"></i> {{ course.beginner_count }}</span>
+        <span class="level-pill medium"><i class="fas fa-fire"></i> {{ course.intermediate_count }}</span>
+        <span class="level-pill hard"><i class="fas fa-skull"></i> {{ course.advanced_count }}</span>
+      </div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.72rem;color:var(--text-dim);"><i class="fas fa-question-circle"></i> {{ course.q_count }} questions</span>
+        <span style="font-size:0.72rem;font-weight:700;color:{{ course.color }};text-transform:uppercase;letter-spacing:1px;">Start →</span>
+      </div>
+    </div>
+    {% endif %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Placement Prep Track -->
+{% if active_track == 'all' or active_track == 'placement' %}
+<div style="margin-bottom:32px;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <div style="width:3px;height:20px;background:var(--gold);border-radius:2px;box-shadow:0 0 8px var(--gold);"></div>
+    <h2 style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);">
+      <i class="fas fa-briefcase" style="color:var(--gold);margin-right:8px;"></i>Placement Preparation
+    </h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;">
+    {% for course in courses %}{% if course.track == 'placement' %}
+    <div class="category-card fade-in-up" style="--cat-color:{{ course.color }};--cat-glow:{{ course.color }}0f;"
+         onclick="openCourseLevelModal('{{ course.slug }}','{{ course.name }}','{{ course.color }}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
+        <div class="cat-icon" style="background:{{ course.color }}18;color:{{ course.color }};">
+          <i class="{{ course.icon }}"></i>
+        </div>
+        {% if course.user_sessions %}
+        <div style="text-align:right;">
+          <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;
+               color:{% if course.user_avg >= 70 %}var(--green){% elif course.user_avg >= 50 %}var(--gold){% else %}var(--red){% endif %};">{{ course.user_avg }}%</div>
+          <div style="font-size:0.65rem;color:var(--text-dim);">{{ course.user_sessions }} done</div>
+        </div>
+        {% else %}
+        <span style="font-size:0.65rem;color:var(--text-dim);background:rgba(255,255,255,0.04);padding:3px 9px;border-radius:20px;border:1px solid var(--border);">{{ course.q_count }}Q</span>
+        {% endif %}
+      </div>
+      <div class="cat-name" style="color:{{ course.color }};">{{ course.name }}</div>
+      <div class="cat-desc">{{ course.description }}</div>
+      <div class="cat-levels">
+        <span class="level-pill easy"><i class="fas fa-seedling"></i> {{ course.beginner_count }}</span>
+        <span class="level-pill medium"><i class="fas fa-fire"></i> {{ course.intermediate_count }}</span>
+        <span class="level-pill hard"><i class="fas fa-skull"></i> {{ course.advanced_count }}</span>
+      </div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.72rem;color:var(--text-dim);"><i class="fas fa-question-circle"></i> {{ course.q_count }} questions</span>
+        <span style="font-size:0.72rem;font-weight:700;color:{{ course.color }};text-transform:uppercase;letter-spacing:1px;">Start →</span>
+      </div>
+    </div>
+    {% endif %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openCourseLevelModal(slug, name, color) {
+  const modal = document.getElementById('levelModal');
+  if (!modal) return;
+  modal.querySelector('.modal-cat-name').textContent = name;
+  modal.querySelectorAll('.level-btn').forEach(btn => {
+    btn.onclick = () => {
+      window.location.href = '/courses/start/' + slug + '/?difficulty=' + btn.getAttribute('data-level');
+    };
+  });
+  modal.style.display = 'flex';
+  setTimeout(() => modal.classList.add('open'), 10);
+}
+</script>
+{% endblock %}
