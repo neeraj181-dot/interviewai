@@ -3,425 +3,679 @@
 {% block title %}Profile{% endblock %}
 {% block page_title %}My Profile{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ── Resume Analyzer Card ── */
+@keyframes border-spin {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes upload-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(0,212,255,0.3); }
+  50%      { box-shadow: 0 0 0 12px rgba(0,212,255,0); }
+}
+@keyframes float-icon {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+@keyframes success-pop {
+  0%   { transform: scale(0.8); opacity: 0; }
+  70%  { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes progress-glow {
+  0%,100% { box-shadow: 0 0 8px rgba(0,212,255,0.5); }
+  50%      { box-shadow: 0 0 20px rgba(0,212,255,0.9); }
+}
+.resume-analyzer-card {
+  background: rgba(5,13,26,0.95);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.resume-analyzer-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 20px;
+  padding: 1.5px;
+  background: linear-gradient(135deg, #00d4ff, #7b68ee, #00ff88, #00d4ff);
+  background-size: 300% 300%;
+  animation: border-spin 4s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.resume-drop-zone {
+  border: 2px dashed rgba(0,212,255,0.3);
+  border-radius: 14px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.35s ease;
+  position: relative;
+  overflow: hidden;
+  background: rgba(0,212,255,0.02);
+}
+.resume-drop-zone::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(0,212,255,0.06), transparent 70%);
+  opacity: 0; transition: opacity 0.35s;
+}
+.resume-drop-zone:hover, .resume-drop-zone.drag-over {
+  border-color: rgba(0,212,255,0.7);
+  background: rgba(0,212,255,0.05);
+}
+.resume-drop-zone:hover::before, .resume-drop-zone.drag-over::before { opacity: 1; }
+.resume-drop-zone:hover .upload-icon { animation: float-icon 1.5s ease-in-out infinite; }
+.resume-drop-zone.drag-over { border-style: solid; border-color: var(--cyan); }
+.upload-icon {
+  font-size: 2.8rem; color: var(--cyan);
+  filter: drop-shadow(0 0 12px rgba(0,212,255,0.7));
+  margin-bottom: 14px; display: block;
+  transition: transform 0.3s;
+}
+.resume-file-card {
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.25);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px;
+  animation: success-pop 0.4s ease both;
+}
+.resume-file-icon {
+  width: 48px; height: 56px;
+  background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(123,104,238,0.15));
+  border: 1px solid rgba(0,212,255,0.3);
+  border-radius: 8px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.resume-file-icon::after {
+  content: 'PDF';
+  position: absolute; bottom: 4px;
+  font-size: 0.5rem; font-weight: 900;
+  color: var(--cyan); letter-spacing: 0.5px;
+}
+.upload-progress-bar {
+  height: 4px; background: rgba(255,255,255,0.06);
+  border-radius: 2px; overflow: hidden; margin-top: 12px;
+}
+.upload-progress-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  animation: progress-glow 1s ease-in-out infinite;
+  transition: width 0.3s ease;
+}
+.ats-ring {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.ats-ring svg {
+  position: absolute; inset: 0;
+  transform: rotate(-90deg);
+}
+.ats-ring-value {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.3rem; font-weight: 900;
+  position: relative; z-index: 1;
+  line-height: 1;
+}
+.ats-ring-label {
+  font-size: 0.55rem; color: var(--text-dim);
+  letter-spacing: 1px; text-transform: uppercase;
+  position: relative; z-index: 1; margin-top: 2px;
+}
+.skill-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 11px; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 600;
+  border: 1px solid; margin: 3px;
+}
+.skill-chip.ok      { color: var(--green);  border-color: rgba(0,255,136,0.3);  background: rgba(0,255,136,0.08); }
+.skill-chip.missing { color: var(--gold);   border-color: rgba(255,215,0,0.3);  background: rgba(255,215,0,0.08); }
+.rec-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.12);
+  margin-bottom: 8px;
+  transition: all 0.25s ease;
+}
+.rec-item:hover { border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.07); }
+.ats-check-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0; font-size: 0.82rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.ats-check-row:last-child { border-bottom: none; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;">
+<!-- 3-column layout: Left sidebar | Main form | Resume Analyzer -->
+<div style="display:grid;grid-template-columns:260px 1fr 340px;gap:20px;align-items:start;">
 
-  <!-- ═══ LEFT: Profile Card ═══ -->
-  <div style="display:flex;flex-direction:column;gap:16px;">
+<!-- ═══════════════════════════════════
+     COLUMN 1 — Profile Identity Card
+═══════════════════════════════════ -->
+<div style="display:flex;flex-direction:column;gap:16px;">
 
-    <!-- Identity card -->
-    <div class="glass-card-static" style="padding:28px;text-align:center;">
-      <!-- Avatar with camera overlay -->
-      <div style="position:relative;display:inline-block;margin-bottom:16px;">
-        <div class="avatar-preview" id="avatarPreview"
-             style="width:90px;height:90px;font-size:2.2rem;margin:0 auto;">
-          {% if profile.avatar %}
-            <img src="{{ profile.avatar.url }}" alt="avatar">
-          {% else %}
-            {{ request.user.username|first|upper }}
-          {% endif %}
+  <!-- Identity -->
+  <div class="glass-card-static" style="padding:24px;text-align:center;">
+    <div style="position:relative;display:inline-block;margin-bottom:14px;">
+      <div id="avatarPreview" class="avatar-preview" style="width:84px;height:84px;font-size:2rem;margin:0 auto;">
+        {% if profile.avatar %}<img src="{{ profile.avatar.url }}" alt="avatar">
+        {% else %}{{ request.user.username|first|upper }}{% endif %}
+      </div>
+      <button type="button" onclick="document.getElementById('avatarInput').click()"
+              style="position:absolute;bottom:0;right:0;width:24px;height:24px;border-radius:50%;background:var(--cyan);border:none;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#000;cursor:pointer;box-shadow:0 0 10px rgba(0,212,255,0.5);">
+        <i class="fas fa-camera"></i>
+      </button>
+    </div>
+    <h2 style="font-family:'Orbitron',monospace;font-size:0.95rem;font-weight:700;color:var(--text-bright);margin-bottom:3px;">{{ request.user.get_full_name|default:request.user.username }}</h2>
+    <div style="color:var(--text-dim);font-size:0.78rem;margin-bottom:3px;">@{{ request.user.username }}</div>
+    <div style="color:var(--text-dim);font-size:0.75rem;margin-bottom:14px;">{{ request.user.email }}</div>
+    <div class="rank-badge" style="color:{{ level_info.color }};border-color:{{ level_info.color }}33;background:{{ level_info.color }}12;margin-bottom:14px;display:inline-flex;">
+      <i class="fas fa-shield-alt"></i> {{ level_info.name }}
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text-dim);margin-bottom:5px;">
+        <span>{{ profile.xp_points }} XP</span>
+        {% if level_info.next %}<span>→ {{ level_info.next }} XP</span>{% else %}<span>MAX</span>{% endif %}
+      </div>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" data-width="{{ level_info.progress }}%" style="width:0%;"></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="background:rgba(0,212,255,0.05);border:1px solid var(--border);border-radius:9px;padding:10px;">
+        <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--cyan);">{{ profile.total_interviews }}</div>
+        <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;">Sessions</div>
+      </div>
+      <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.12);border-radius:9px;padding:10px;">
+        <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--green);">{{ profile.average_score }}%</div>
+        <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;">Avg Score</div>
+      </div>
+      <div style="background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.12);border-radius:9px;padding:10px;">
+        <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--gold);">{{ profile.xp_points }}</div>
+        <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;">XP</div>
+      </div>
+      <div style="background:rgba(255,107,157,0.05);border:1px solid rgba(255,107,157,0.12);border-radius:9px;padding:10px;">
+        <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--pink);">{{ profile.streak_days }}</div>
+        <div style="font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;">Streak</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badges -->
+  {% if badges %}
+  <div class="glass-card-static" style="padding:18px;">
+    <h3 style="font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);margin-bottom:12px;"><i class="fas fa-medal" style="color:var(--gold);margin-right:6px;"></i>Achievements</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:7px;">
+      {% for badge in badges %}
+      <div class="badge-item">
+        <div class="badge-icon" style="background:{{ badge.color }}18;color:{{ badge.color }};border:1px solid {{ badge.color }}33;"><i class="{{ badge.icon }}"></i></div>
+        <div class="badge-name">{{ badge.name }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Category Performance -->
+  {% if cat_stats %}
+  <div class="glass-card-static" style="padding:18px;">
+    <h3 style="font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);margin-bottom:12px;"><i class="fas fa-chart-pie" style="color:var(--purple);margin-right:6px;"></i>Performance</h3>
+    {% for cat_name, stats in cat_stats.items %}
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;font-size:0.75rem;margin-bottom:4px;">
+        <span style="color:var(--text-mid);display:flex;align-items:center;gap:5px;"><i class="{{ stats.icon }}" style="color:{{ stats.color }};font-size:0.7rem;"></i>{{ cat_name }}</span>
+        <span style="color:{{ stats.color }};font-weight:700;font-family:'Orbitron',monospace;font-size:0.72rem;">{{ stats.avg }}%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" data-width="{{ stats.avg }}%" style="width:0%;background:linear-gradient(90deg,{{ stats.color }},{{ stats.color }}88);box-shadow:0 0 6px {{ stats.color }}66;"></div></div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+<!-- ═══ END COLUMN 1 ═══ -->
+
+<!-- ═══════════════════════════════════
+     COLUMN 2 — Profile Information Form
+═══════════════════════════════════ -->
+<div style="display:flex;flex-direction:column;gap:16px;">
+
+  <div class="glass-card-static" style="padding:26px;">
+    <h3 style="font-family:'Orbitron',monospace;font-size:0.88rem;font-weight:700;letter-spacing:2px;color:var(--cyan);margin-bottom:22px;">
+      <i class="fas fa-user-edit" style="margin-right:8px;"></i>Profile Information
+    </h3>
+    <form method="post" enctype="multipart/form-data" id="profileForm">
+      {% csrf_token %}
+      <!-- Hidden resume input — controlled by the analyzer card -->
+      <input type="file" id="resumeInput" name="resume" accept=".pdf" style="display:none;">
+      <!-- Hidden avatar input -->
+      <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display:none;">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div><label class="form-label">First Name</label>{{ form.first_name }}</div>
+        <div><label class="form-label">Last Name</label>{{ form.last_name }}</div>
+      </div>
+      <div style="margin-bottom:14px;"><label class="form-label">Email Address</label>{{ form.email }}</div>
+      <div style="margin-bottom:14px;"><label class="form-label">Bio</label>{{ form.bio }}</div>
+      <div style="margin-bottom:14px;">
+        <label class="form-label">Skills <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;">(comma-separated)</span></label>
+        {{ form.skills }}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div><label class="form-label">Years of Experience</label>{{ form.experience_years }}</div>
+        <div><label class="form-label">GitHub URL</label>{{ form.github_url }}</div>
+      </div>
+      <div style="margin-bottom:14px;"><label class="form-label">LinkedIn URL</label>{{ form.linkedin_url }}</div>
+
+      <!-- Accent Color -->
+      <div style="margin-bottom:22px;">
+        <label class="form-label">Accent Color</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px;">
+          <label class="color-swatch-label" title="Cyan"><input type="radio" name="theme_accent" value="#00d4ff" {% if profile.theme_accent == '#00d4ff' or not profile.theme_accent %}checked{% endif %}><span class="color-swatch" style="background:#00d4ff;box-shadow:0 0 10px #00d4ff66;"></span></label>
+          <label class="color-swatch-label" title="Green"><input type="radio" name="theme_accent" value="#00ff88" {% if profile.theme_accent == '#00ff88' %}checked{% endif %}><span class="color-swatch" style="background:#00ff88;box-shadow:0 0 10px #00ff8866;"></span></label>
+          <label class="color-swatch-label" title="Pink"><input type="radio" name="theme_accent" value="#ff6b9d" {% if profile.theme_accent == '#ff6b9d' %}checked{% endif %}><span class="color-swatch" style="background:#ff6b9d;box-shadow:0 0 10px #ff6b9d66;"></span></label>
+          <label class="color-swatch-label" title="Gold"><input type="radio" name="theme_accent" value="#ffd700" {% if profile.theme_accent == '#ffd700' %}checked{% endif %}><span class="color-swatch" style="background:#ffd700;box-shadow:0 0 10px #ffd70066;"></span></label>
+          <label class="color-swatch-label" title="Purple"><input type="radio" name="theme_accent" value="#7b68ee" {% if profile.theme_accent == '#7b68ee' %}checked{% endif %}><span class="color-swatch" style="background:#7b68ee;box-shadow:0 0 10px #7b68ee66;"></span></label>
+          <label class="color-swatch-label" title="Orange"><input type="radio" name="theme_accent" value="#ff8c00" {% if profile.theme_accent == '#ff8c00' %}checked{% endif %}><span class="color-swatch" style="background:#ff8c00;box-shadow:0 0 10px #ff8c0066;"></span></label>
         </div>
-        <button type="button" onclick="document.getElementById('avatarInput').click()"
-                style="position:absolute;bottom:0;right:0;width:26px;height:26px;border-radius:50%;
-                       background:var(--cyan);border:none;display:flex;align-items:center;
-                       justify-content:center;font-size:0.7rem;color:#000;cursor:pointer;
-                       box-shadow:0 0 10px rgba(0,212,255,0.5);">
-          <i class="fas fa-camera"></i>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:6px;">Selected: <span id="accentLabel" style="color:var(--cyan);font-weight:600;">{{ profile.theme_accent|default:'#00d4ff' }}</span></div>
+      </div>
+
+      <button type="submit" class="btn-solid"><i class="fas fa-save"></i> Save Changes</button>
+    </form>
+  </div>
+
+  <!-- Recent Sessions -->
+  {% if interview_sessions %}
+  <div class="glass-card-static" style="padding:20px;">
+    <h3 style="font-family:'Orbitron',monospace;font-size:0.78rem;font-weight:700;letter-spacing:2px;color:var(--pink);margin-bottom:14px;"><i class="fas fa-history" style="margin-right:6px;"></i>Recent Sessions</h3>
+    {% for session in interview_sessions|slice:":5" %}
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+      <div style="width:32px;height:32px;border-radius:8px;background:{{ session.category.color }}18;color:{{ session.category.color }};display:flex;align-items:center;justify-content:center;font-size:0.82rem;flex-shrink:0;"><i class="{{ session.category.icon }}"></i></div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:0.85rem;color:var(--text-bright);">{{ session.category.name }}</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);">{{ session.created_at|date:"M d, Y" }}</div>
+      </div>
+      <div style="font-family:'Orbitron',monospace;font-weight:700;font-size:0.88rem;color:{% if session.percentage >= 70 %}var(--green){% elif session.percentage >= 50 %}var(--gold){% else %}var(--red){% endif %};">{{ session.percentage }}%</div>
+      <a href="{% url 'interview_result' session.id %}" style="color:var(--text-dim);font-size:0.82rem;text-decoration:none;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-dim)'"><i class="fas fa-eye"></i></a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+<!-- ═══ END COLUMN 2 ═══ -->
+
+<!-- ═══════════════════════════════════
+     COLUMN 3 — Resume Analyzer AI Card
+═══════════════════════════════════ -->
+<div style="display:flex;flex-direction:column;gap:16px;position:sticky;top:80px;">
+
+  <!-- ── RESUME ANALYZER CARD ── -->
+  <div class="resume-analyzer-card" style="padding:24px;">
+
+    <!-- Card Header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,rgba(0,212,255,0.2),rgba(123,104,238,0.2));border:1px solid rgba(0,212,255,0.3);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--cyan);box-shadow:0 0 14px rgba(0,212,255,0.25);">
+        <i class="fas fa-robot"></i>
+      </div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:var(--text-bright);">Resume Analyzer AI</div>
+        <div style="font-size:0.68rem;color:var(--text-dim);">ATS · Skills · Career Insights</div>
+      </div>
+      <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse-dot 2s infinite;"></div>
+    </div>
+
+    <!-- Upload benefits list (shown before upload) -->
+    <div id="resumeBenefits" {% if profile.resume %}style="display:none;"{% endif %}>
+      <div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:12px;">Upload your resume to receive:</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text-mid);"><i class="fas fa-check-circle" style="color:var(--cyan);font-size:0.75rem;"></i> ATS Readiness Score</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text-mid);"><i class="fas fa-check-circle" style="color:var(--cyan);font-size:0.75rem;"></i> Skill Gap Analysis</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text-mid);"><i class="fas fa-check-circle" style="color:var(--cyan);font-size:0.75rem;"></i> Career Recommendations</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text-mid);"><i class="fas fa-check-circle" style="color:var(--cyan);font-size:0.75rem;"></i> Interview Track Suggestions</div>
+      </div>
+    </div>
+
+    <!-- ── DROP ZONE (shown when no resume) ── -->
+    <div id="resumeDropZone" class="resume-drop-zone" {% if profile.resume %}style="display:none;"{% endif %}>
+      <i class="fas fa-cloud-upload-alt upload-icon"></i>
+      <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:var(--text-bright);margin-bottom:6px;">Upload Resume</div>
+      <div style="font-size:0.88rem;color:var(--text-mid);margin-bottom:8px;">Drag &amp; Drop PDF Here</div>
+      <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:14px;">— or —</div>
+      <button type="button" onclick="document.getElementById('resumeInput').click()"
+              style="padding:8px 22px;border-radius:20px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.35);color:var(--cyan);font-family:'Rajdhani',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.3s;letter-spacing:0.5px;"
+              onmouseover="this.style.background='rgba(0,212,255,0.2)'" onmouseout="this.style.background='rgba(0,212,255,0.1)'">
+        Click to Browse
+      </button>
+      <div style="font-size:0.68rem;color:var(--text-dim);margin-top:12px;">Supported: PDF only · Max size: 5MB</div>
+    </div>
+
+    <!-- ── UPLOADING STATE ── -->
+    <div id="resumeUploading" style="display:none;text-align:center;padding:20px 0;">
+      <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--cyan);margin-bottom:12px;display:block;"></i>
+      <div style="font-size:0.85rem;color:var(--text-mid);margin-bottom:10px;">Analyzing resume...</div>
+      <div class="upload-progress-bar">
+        <div class="upload-progress-fill" id="uploadProgressFill" style="width:0%;"></div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--text-dim);margin-top:6px;" id="uploadProgressText">0%</div>
+    </div>
+
+    <!-- ── UPLOADED FILE CARD ── -->
+    <div id="resumeFileCard" {% if not profile.resume %}style="display:none;"{% endif %}>
+      <div class="resume-file-card">
+        <div class="resume-file-icon">
+          <i class="fas fa-file-pdf" style="font-size:1.3rem;color:var(--cyan);"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:0.88rem;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="resumeFileName">
+            {% if profile.resume %}{{ profile.resume.name|slice:"8:" }}{% else %}resume.pdf{% endif %}
+          </div>
+          <div style="font-size:0.72rem;color:var(--text-dim);margin-top:2px;" id="resumeFileSize">
+            {% if profile.resume %}Uploaded{% endif %}
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;margin-top:4px;">
+            <i class="fas fa-check-circle" style="color:var(--green);font-size:0.72rem;"></i>
+            <span style="font-size:0.72rem;color:var(--green);font-weight:600;">Uploaded Successfully</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- File action buttons -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+        {% if profile.resume %}
+        <a href="{{ profile.resume.url }}" target="_blank"
+           style="padding:8px;border-radius:8px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.25);color:var(--cyan);font-family:'Rajdhani',sans-serif;font-size:0.78rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:5px;transition:all 0.25s;"
+           onmouseover="this.style.background='rgba(0,212,255,0.16)'" onmouseout="this.style.background='rgba(0,212,255,0.08)'">
+          <i class="fas fa-download"></i> Download
+        </a>
+        {% endif %}
+        <button type="button" onclick="document.getElementById('resumeInput').click()"
+                style="padding:8px;border-radius:8px;background:rgba(123,104,238,0.08);border:1px solid rgba(123,104,238,0.25);color:var(--purple);font-family:'Rajdhani',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.25s;display:flex;align-items:center;justify-content:center;gap:5px;"
+                onmouseover="this.style.background='rgba(123,104,238,0.16)'" onmouseout="this.style.background='rgba(123,104,238,0.08)'">
+          <i class="fas fa-sync-alt"></i> Replace
+        </button>
+        <button type="button" id="removeResumeBtn"
+                style="padding:8px;border-radius:8px;background:rgba(255,71,87,0.06);border:1px solid rgba(255,71,87,0.2);color:var(--red);font-family:'Rajdhani',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.25s;display:flex;align-items:center;justify-content:center;gap:5px;"
+                onmouseover="this.style.background='rgba(255,71,87,0.14)'" onmouseout="this.style.background='rgba(255,71,87,0.06)'">
+          <i class="fas fa-trash-alt"></i> Remove
+        </button>
+        <button type="button" onclick="triggerAnalysis()"
+                style="padding:8px;border-radius:8px;background:linear-gradient(135deg,rgba(0,212,255,0.15),rgba(123,104,238,0.15));border:1px solid rgba(0,212,255,0.3);color:var(--cyan);font-family:'Rajdhani',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.25s;display:flex;align-items:center;justify-content:center;gap:5px;"
+                onmouseover="this.style.background='linear-gradient(135deg,rgba(0,212,255,0.25),rgba(123,104,238,0.25))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(0,212,255,0.15),rgba(123,104,238,0.15))'">
+          <i class="fas fa-robot"></i> Analyze
         </button>
       </div>
+    </div>
 
-      <h2 style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;
-                 color:var(--text-bright);margin-bottom:4px;">
-        {{ request.user.get_full_name|default:request.user.username }}
-      </h2>
-      <div style="color:var(--text-dim);font-size:0.82rem;margin-bottom:4px;">
-        @{{ request.user.username }}
-      </div>
-      <div style="color:var(--text-dim);font-size:0.8rem;margin-bottom:16px;">
-        {{ request.user.email }}
-      </div>
+  </div>
+  <!-- ── END RESUME ANALYZER CARD ── -->
 
-      <!-- Rank badge -->
-      <div class="rank-badge"
-           style="color:{{ level_info.color }};border-color:{{ level_info.color }}33;
-                  background:{{ level_info.color }}12;margin-bottom:16px;display:inline-flex;">
-        <i class="fas fa-shield-alt"></i> {{ level_info.name }}
-      </div>
+  <!-- ── AI ANALYSIS RESULTS PANEL ── -->
+  <div id="aiAnalysisPanel" class="glass-card-static" style="padding:22px;{% if not profile.resume %}display:none;{% endif %}">
 
-      <!-- XP Bar -->
-      <div style="margin-bottom:20px;">
-        <div style="display:flex;justify-content:space-between;font-size:0.7rem;
-                    color:var(--text-dim);margin-bottom:6px;">
-          <span>{{ profile.xp_points }} XP</span>
-          {% if level_info.next %}
-            <span>Next: {{ level_info.next }} XP</span>
-          {% else %}
-            <span>Max Level</span>
-          {% endif %}
-        </div>
-        <div class="xp-bar-wrap">
-          <div class="xp-bar-fill" data-width="{{ level_info.progress }}%"
-               style="width:0%;"></div>
-        </div>
+    <!-- ATS Score Row -->
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--border);">
+      <!-- SVG Ring -->
+      <div class="ats-ring">
+        <svg viewBox="0 0 90 90" width="90" height="90">
+          <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="7"/>
+          <circle cx="45" cy="45" r="38" fill="none"
+                  stroke="{% if ats_score >= 70 %}#00ff88{% elif ats_score >= 50 %}#ffd700{% else %}#ff4757{% endif %}"
+                  stroke-width="7" stroke-linecap="round"
+                  stroke-dasharray="238.76"
+                  stroke-dashoffset="{{ 238.76|floatformat:0 }}"
+                  id="atsCircle"
+                  style="filter:drop-shadow(0 0 6px {% if ats_score >= 70 %}#00ff88{% elif ats_score >= 50 %}#ffd700{% else %}#ff4757{% endif %});transition:stroke-dashoffset 1.2s ease;"/>
+        </svg>
+        <div class="ats-ring-value" style="color:{% if ats_score >= 70 %}var(--green){% elif ats_score >= 50 %}var(--gold){% else %}var(--red){% endif %};" id="atsScoreVal">0%</div>
+        <div class="ats-ring-label">ATS Score</div>
       </div>
-
-      <!-- Stats grid -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
-        <div style="background:rgba(0,212,255,0.05);border:1px solid var(--border);
-                    border-radius:10px;padding:12px;">
-          <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;
-                      color:var(--cyan);">{{ profile.total_interviews }}</div>
-          <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;
-                      text-transform:uppercase;">Interviews</div>
+      <div style="flex:1;">
+        <div style="font-family:'Orbitron',monospace;font-size:0.8rem;font-weight:700;color:var(--text-bright);margin-bottom:4px;">Profile Completeness</div>
+        <div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:10px;">
+          {% if ats_score >= 70 %}Strong profile — ready for applications!
+          {% elif ats_score >= 50 %}Good start — a few improvements needed.
+          {% else %}Complete your profile to improve ATS score.{% endif %}
         </div>
-        <div style="background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.12);
-                    border-radius:10px;padding:12px;">
-          <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;
-                      color:var(--green);">{{ profile.average_score }}%</div>
-          <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;
-                      text-transform:uppercase;">Avg Score</div>
-        </div>
-        <div style="background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.12);
-                    border-radius:10px;padding:12px;">
-          <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;
-                      color:var(--gold);">{{ profile.xp_points }}</div>
-          <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;
-                      text-transform:uppercase;">XP Points</div>
-        </div>
-        <div style="background:rgba(255,107,157,0.05);border:1px solid rgba(255,107,157,0.12);
-                    border-radius:10px;padding:12px;">
-          <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;
-                      color:var(--pink);">{{ profile.streak_days }}</div>
-          <div style="font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;
-                      text-transform:uppercase;">Day Streak</div>
+        <div class="progress-track">
+          <div class="progress-fill {% if ats_score >= 70 %}progress-fill-green{% elif ats_score >= 50 %}progress-fill-gold{% endif %}"
+               data-width="{{ ats_score }}%" style="width:0%;"></div>
         </div>
       </div>
+    </div>
 
-      {% if profile.bio %}
-      <div style="color:var(--text-dim);font-size:0.85rem;line-height:1.6;text-align:left;
-                  padding:12px;background:rgba(255,255,255,0.02);border-radius:8px;
-                  border:1px solid var(--border);">
-        {{ profile.bio }}
+    <!-- ATS Checklist -->
+    <div style="margin-bottom:18px;">
+      <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Profile Checklist</div>
+      {% for check in ats_checks %}
+      <div class="ats-check-row">
+        <i class="fas fa-{% if check.ok %}check-circle{% else %}times-circle{% endif %}"
+           style="color:{% if check.ok %}var(--green){% else %}rgba(255,71,87,0.6){% endif %};font-size:0.8rem;flex-shrink:0;"></i>
+        <span style="color:{% if check.ok %}var(--text-mid){% else %}var(--text-dim){% endif %};">{{ check.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Skills Analysis -->
+    {% if profile.skills_list or missing_skills %}
+    <div style="margin-bottom:18px;">
+      <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Skill Analysis</div>
+      {% if profile.skills_list %}
+      <div style="margin-bottom:8px;">
+        <div style="font-size:0.72rem;color:var(--green);margin-bottom:5px;font-weight:600;">✓ Your Skills</div>
+        <div>{% for skill in profile.skills_list|slice:":6" %}<span class="skill-chip ok"><i class="fas fa-check" style="font-size:0.6rem;"></i>{{ skill }}</span>{% endfor %}</div>
+      </div>
+      {% endif %}
+      {% if missing_skills %}
+      <div>
+        <div style="font-size:0.72rem;color:var(--gold);margin-bottom:5px;font-weight:600;">⚠ High-Demand Skills to Add</div>
+        <div>{% for skill in missing_skills %}<span class="skill-chip missing"><i class="fas fa-exclamation" style="font-size:0.6rem;"></i>{{ skill }}</span>{% endfor %}</div>
       </div>
       {% endif %}
     </div>
-
-    <!-- Badges -->
-    {% if badges %}
-    <div class="glass-card-static" style="padding:20px;">
-      <h3 style="font-family:'Orbitron',monospace;font-size:0.78rem;font-weight:700;
-                 letter-spacing:2px;color:var(--text-bright);margin-bottom:14px;">
-        <i class="fas fa-medal" style="color:var(--gold);margin-right:8px;"></i>Achievements
-      </h3>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;">
-        {% for badge in badges %}
-        <div class="badge-item">
-          <div class="badge-icon"
-               style="background:{{ badge.color }}18;color:{{ badge.color }};
-                      border:1px solid {{ badge.color }}33;">
-            <i class="{{ badge.icon }}"></i>
-          </div>
-          <div class="badge-name">{{ badge.name }}</div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
     {% endif %}
 
-    <!-- Category breakdown -->
-    {% if cat_stats %}
-    <div class="glass-card-static" style="padding:20px;">
-      <h3 style="font-family:'Orbitron',monospace;font-size:0.78rem;font-weight:700;
-                 letter-spacing:2px;color:var(--text-bright);margin-bottom:14px;">
-        <i class="fas fa-chart-pie" style="color:var(--purple);margin-right:8px;"></i>By Category
-      </h3>
-      {% for cat_name, stats in cat_stats.items %}
-      <div style="margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:5px;">
-          <span style="color:var(--text-mid);display:flex;align-items:center;gap:6px;">
-            <i class="{{ stats.icon }}" style="color:{{ stats.color }};"></i> {{ cat_name }}
-          </span>
-          <span style="color:{{ stats.color }};font-weight:700;
-                       font-family:'Orbitron',monospace;font-size:0.75rem;">{{ stats.avg }}%</span>
+    <!-- Recommendations -->
+    {% if recommended_tracks or missing_skills %}
+    <div>
+      <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">AI Recommendations</div>
+      {% if not profile.resume %}
+      <div class="rec-item"><i class="fas fa-file-upload" style="color:var(--cyan);margin-top:2px;flex-shrink:0;"></i><span style="font-size:0.82rem;color:var(--text-mid);">Upload your resume to unlock full ATS analysis</span></div>
+      {% endif %}
+      {% if not profile.github_url %}
+      <div class="rec-item"><i class="fab fa-github" style="color:var(--purple);margin-top:2px;flex-shrink:0;"></i><span style="font-size:0.82rem;color:var(--text-mid);">Add your GitHub profile to boost credibility</span></div>
+      {% endif %}
+      {% for item in recommended_tracks %}
+      <div class="rec-item">
+        <i class="{{ item.track.icon }}" style="color:{{ item.track.color }};margin-top:2px;flex-shrink:0;"></i>
+        <div>
+          <div style="font-size:0.82rem;color:var(--text-mid);">Complete <span style="color:{{ item.track.color }};font-weight:600;">{{ item.track.name }}</span> track</div>
+          <div style="font-size:0.7rem;color:var(--text-dim);">Missing skill: {{ item.skill }}</div>
         </div>
-        <div class="progress-track">
-          <div class="progress-fill" data-width="{{ stats.avg }}%"
-               style="width:0%;background:linear-gradient(90deg,{{ stats.color }},{{ stats.color }}88);
-                      box-shadow:0 0 8px {{ stats.color }}66;"></div>
-        </div>
+        <a href="{% url 'interview_prep' %}?track={{ item.track.track }}" style="margin-left:auto;font-size:0.7rem;color:var(--cyan);text-decoration:none;white-space:nowrap;flex-shrink:0;" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--cyan)'">Start →</a>
       </div>
       {% endfor %}
+      {% if profile.average_score < 70 %}
+      <div class="rec-item"><i class="fas fa-chart-line" style="color:var(--gold);margin-top:2px;flex-shrink:0;"></i><span style="font-size:0.82rem;color:var(--text-mid);">Practice more interviews to improve your average score above 70%</span></div>
+      {% endif %}
     </div>
     {% endif %}
 
   </div>
-  <!-- ═══ END LEFT ═══ -->
-
-  <!-- ═══ RIGHT: Edit Form ═══ -->
-  <div style="display:flex;flex-direction:column;gap:16px;">
-
-    <div class="glass-card-static" style="padding:28px;">
-      <h3 style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;
-                 letter-spacing:2px;color:var(--cyan);margin-bottom:24px;">
-        <i class="fas fa-edit"></i> Edit Profile
-      </h3>
-
-      <form method="post" enctype="multipart/form-data" id="profileForm">
-        {% csrf_token %}
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-          <div>
-            <label class="form-label">First Name</label>
-            {{ form.first_name }}
-          </div>
-          <div>
-            <label class="form-label">Last Name</label>
-            {{ form.last_name }}
-          </div>
-        </div>
-
-        <div style="margin-bottom:16px;">
-          <label class="form-label">Email Address</label>
-          {{ form.email }}
-        </div>
-
-        <div style="margin-bottom:16px;">
-          <label class="form-label">Bio</label>
-          {{ form.bio }}
-        </div>
-
-        <!-- Skills -->
-        <div style="margin-bottom:16px;">
-          <label class="form-label">Skills <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;">(comma-separated)</span></label>
-          {{ form.skills }}
-        </div>
-
-        <!-- Experience + Links -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-          <div>
-            <label class="form-label">Years of Experience</label>
-            {{ form.experience_years }}
-          </div>
-          <div>
-            <label class="form-label">GitHub URL</label>
-            {{ form.github_url }}
-          </div>
-        </div>
-        <div style="margin-bottom:16px;">
-          <label class="form-label">LinkedIn URL</label>
-          {{ form.linkedin_url }}
-        </div>
-
-        <!-- Resume Upload -->
-        <div style="margin-bottom:16px;">
-          <label class="form-label">Resume <span style="color:var(--text-dim);font-weight:400;text-transform:none;">(PDF)</span></label>
-          {% if profile.resume %}
-          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:8px;margin-bottom:8px;">
-            <i class="fas fa-file-pdf" style="color:var(--green);"></i>
-            <span style="font-size:0.85rem;color:var(--green);">Resume uploaded</span>
-            <a href="{{ profile.resume.url }}" target="_blank" style="margin-left:auto;font-size:0.75rem;color:var(--cyan);text-decoration:none;"><i class="fas fa-download"></i> Download</a>
-          </div>
-          {% endif %}
-          {{ form.resume }}
-        </div>
-
-        <!-- ── Futuristic Avatar Upload ── -->
-        <div style="margin-bottom:24px;">
-          <label class="form-label">Profile Avatar</label>
-          <div class="avatar-upload-zone" id="avatarZone">
-            <i class="fas fa-cloud-upload-alt"
-               style="font-size:2rem;color:var(--cyan);margin-bottom:10px;display:block;
-                      filter:drop-shadow(0 0 8px rgba(0,212,255,0.6));"></i>
-            <div style="font-size:0.92rem;color:var(--text-mid);margin-bottom:4px;font-weight:600;">
-              Drag &amp; drop or click to upload
-            </div>
-            <div style="font-size:0.75rem;color:var(--text-dim);">PNG, JPG, GIF · Max 5MB</div>
-            <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display:none;">
-          </div>
-          <div id="uploadFileName"
-               style="font-size:0.78rem;color:var(--green);margin-top:6px;display:none;">
-            <i class="fas fa-check-circle"></i> <span id="fileNameText"></span>
-          </div>
-        </div>
-
-        <!-- ── Accent Color Picker ── -->
-        <div style="margin-bottom:28px;">
-          <label class="form-label">Accent Color</label>
-          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:4px;">
-
-            <label class="color-swatch-label" title="Cyan">
-              <input type="radio" name="theme_accent" value="#00d4ff"
-                     {% if profile.theme_accent == '#00d4ff' or not profile.theme_accent %}checked{% endif %}>
-              <span class="color-swatch" style="background:#00d4ff;box-shadow:0 0 10px #00d4ff66;"></span>
-            </label>
-
-            <label class="color-swatch-label" title="Green">
-              <input type="radio" name="theme_accent" value="#00ff88"
-                     {% if profile.theme_accent == '#00ff88' %}checked{% endif %}>
-              <span class="color-swatch" style="background:#00ff88;box-shadow:0 0 10px #00ff8866;"></span>
-            </label>
-
-            <label class="color-swatch-label" title="Pink">
-              <input type="radio" name="theme_accent" value="#ff6b9d"
-                     {% if profile.theme_accent == '#ff6b9d' %}checked{% endif %}>
-              <span class="color-swatch" style="background:#ff6b9d;box-shadow:0 0 10px #ff6b9d66;"></span>
-            </label>
-
-            <label class="color-swatch-label" title="Gold">
-              <input type="radio" name="theme_accent" value="#ffd700"
-                     {% if profile.theme_accent == '#ffd700' %}checked{% endif %}>
-              <span class="color-swatch" style="background:#ffd700;box-shadow:0 0 10px #ffd70066;"></span>
-            </label>
-
-            <label class="color-swatch-label" title="Purple">
-              <input type="radio" name="theme_accent" value="#7b68ee"
-                     {% if profile.theme_accent == '#7b68ee' %}checked{% endif %}>
-              <span class="color-swatch" style="background:#7b68ee;box-shadow:0 0 10px #7b68ee66;"></span>
-            </label>
-
-            <label class="color-swatch-label" title="Orange">
-              <input type="radio" name="theme_accent" value="#ff8c00"
-                     {% if profile.theme_accent == '#ff8c00' %}checked{% endif %}>
-              <span class="color-swatch" style="background:#ff8c00;box-shadow:0 0 10px #ff8c0066;"></span>
-            </label>
-
-          </div>
-          <div style="font-size:0.72rem;color:var(--text-dim);margin-top:8px;">
-            Selected: <span id="accentLabel" style="color:var(--cyan);font-weight:600;">
-              {{ profile.theme_accent|default:'#00d4ff' }}
-            </span>
-          </div>
-        </div>
-
-        <button type="submit" class="btn-solid">
-          <i class="fas fa-save"></i> Save Changes
-        </button>
-      </form>
-    </div>
-
-    <!-- Recent Sessions -->
-    {% if sessions %}
-    <div class="glass-card-static" style="padding:24px;">
-      <h3 style="font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;
-                 letter-spacing:2px;color:var(--pink);margin-bottom:16px;">
-        <i class="fas fa-history"></i> Recent Sessions
-      </h3>
-      {% for session in sessions|slice:":6" %}
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;
-                  border-bottom:1px solid var(--border);">
-        <div style="width:34px;height:34px;border-radius:9px;
-                    background:{{ session.category.color }}18;
-                    color:{{ session.category.color }};
-                    display:flex;align-items:center;justify-content:center;
-                    font-size:0.85rem;flex-shrink:0;">
-          <i class="{{ session.category.icon }}"></i>
-        </div>
-        <div style="flex:1;">
-          <div style="font-weight:600;font-size:0.88rem;color:var(--text-bright);">
-            {{ session.category.name }}
-          </div>
-          <div style="font-size:0.72rem;color:var(--text-dim);">
-            {{ session.created_at|date:"M d, Y" }} · {{ session.get_difficulty_filter_display }}
-          </div>
-        </div>
-        <div style="font-family:'Orbitron',monospace;font-weight:700;font-size:0.9rem;
-                    color:{% if session.percentage >= 70 %}var(--green)
-                          {% elif session.percentage >= 50 %}var(--gold)
-                          {% else %}var(--red){% endif %};">
-          {{ session.percentage }}%
-        </div>
-        <a href="{% url 'interview_result' session.id %}"
-           style="color:var(--text-dim);font-size:0.85rem;text-decoration:none;
-                  transition:color 0.2s;"
-           onmouseover="this.style.color='var(--cyan)'"
-           onmouseout="this.style.color='var(--text-dim)'">
-          <i class="fas fa-eye"></i>
-        </a>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-  </div>
-  <!-- ═══ END RIGHT ═══ -->
+  <!-- ── END AI ANALYSIS PANEL ── -->
 
 </div>
+<!-- ═══ END COLUMN 3 ═══ -->
+
+</div><!-- end 3-col grid -->
 {% endblock %}
 
 {% block extra_js %}
 <script>
 (function () {
-  /* ── Avatar drag-and-drop ── */
-  const zone    = document.getElementById('avatarZone');
-  const input   = document.getElementById('avatarInput');
-  const preview = document.getElementById('avatarPreview');
-  const fnLabel = document.getElementById('uploadFileName');
-  const fnText  = document.getElementById('fileNameText');
+  /* ── Constants ── */
+  const ATS_SCORE   = {{ ats_score }};
+  const CIRCUMF     = 238.76;
+  const HAS_RESUME  = {{ profile.resume|yesno:"true,false" }};
 
-  if (zone && input) {
-    zone.addEventListener('click', () => input.click());
+  /* ── Elements ── */
+  const resumeInput   = document.getElementById('resumeInput');
+  const dropZone      = document.getElementById('resumeDropZone');
+  const fileCard      = document.getElementById('resumeFileCard');
+  const uploading     = document.getElementById('resumeUploading');
+  const benefits      = document.getElementById('resumeBenefits');
+  const aiPanel       = document.getElementById('aiAnalysisPanel');
+  const progressFill  = document.getElementById('uploadProgressFill');
+  const progressText  = document.getElementById('uploadProgressText');
+  const fileNameEl    = document.getElementById('resumeFileName');
+  const fileSizeEl    = document.getElementById('resumeFileSize');
+  const removeBtn     = document.getElementById('removeResumeBtn');
+  const avatarZone    = null; // no separate zone now
+  const avatarInput   = document.getElementById('avatarInput');
+  const avatarPreview = document.getElementById('avatarPreview');
 
-    zone.addEventListener('dragover', e => {
-      e.preventDefault();
-      zone.classList.add('drag-over');
-    });
-    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-    zone.addEventListener('drop', e => {
-      e.preventDefault();
-      zone.classList.remove('drag-over');
+  /* ── ATS Ring animation ── */
+  function animateATS() {
+    const circle = document.getElementById('atsCircle');
+    const valEl  = document.getElementById('atsScoreVal');
+    if (!circle || !valEl) return;
+    const offset = CIRCUMF - (ATS_SCORE / 100) * CIRCUMF;
+    setTimeout(() => { circle.style.strokeDashoffset = offset; }, 300);
+    let current = 0;
+    const step = ATS_SCORE / 60;
+    const timer = setInterval(() => {
+      current = Math.min(current + step, ATS_SCORE);
+      valEl.textContent = Math.floor(current) + '%';
+      if (current >= ATS_SCORE) clearInterval(timer);
+    }, 20);
+  }
+  if (HAS_RESUME) animateATS();
+
+  /* ── Resume drag-and-drop ── */
+  if (dropZone) {
+    dropZone.addEventListener('click', () => resumeInput.click());
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault(); dropZone.classList.remove('drag-over');
       const file = e.dataTransfer.files[0];
-      if (file && file.type.startsWith('image/')) {
-        setFile(file);
-      }
-    });
-
-    input.addEventListener('change', () => {
-      if (input.files[0]) setFile(input.files[0]);
+      if (file) handleResumeFile(file);
     });
   }
 
-  function setFile(file) {
-    /* Show filename */
-    if (fnLabel && fnText) {
-      fnText.textContent = file.name;
-      fnLabel.style.display = 'block';
+  if (resumeInput) {
+    resumeInput.addEventListener('change', () => {
+      if (resumeInput.files[0]) handleResumeFile(resumeInput.files[0]);
+    });
+  }
+
+  function handleResumeFile(file) {
+    if (file.type !== 'application/pdf') {
+      alert('Please upload a PDF file only.');
+      return;
     }
-    /* Live preview */
-    const reader = new FileReader();
-    reader.onload = e => {
-      if (preview) {
-        preview.innerHTML =
-          '<img src="' + e.target.result +
-          '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-      }
-    };
-    reader.readAsDataURL(file);
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be under 5MB.');
+      return;
+    }
+    /* Show uploading state */
+    if (dropZone)  dropZone.style.display  = 'none';
+    if (benefits)  benefits.style.display  = 'none';
+    if (fileCard)  fileCard.style.display  = 'none';
+    if (uploading) uploading.style.display = 'block';
+
+    /* Simulate progress then submit */
+    let pct = 0;
+    const interval = setInterval(() => {
+      pct = Math.min(pct + Math.random() * 18 + 5, 95);
+      if (progressFill) progressFill.style.width = pct + '%';
+      if (progressText) progressText.textContent = Math.floor(pct) + '%';
+    }, 120);
+
+    setTimeout(() => {
+      clearInterval(interval);
+      if (progressFill) progressFill.style.width = '100%';
+      if (progressText) progressText.textContent = '100%';
+      setTimeout(() => {
+        /* Show file card */
+        if (uploading) uploading.style.display = 'none';
+        if (fileCard)  fileCard.style.display  = 'block';
+        if (aiPanel)   { aiPanel.style.display = 'block'; animateATS(); }
+        /* Update filename display */
+        const sizeKB = Math.round(file.size / 1024);
+        if (fileNameEl) fileNameEl.textContent = file.name;
+        if (fileSizeEl) fileSizeEl.textContent = sizeKB + ' KB';
+        /* Auto-submit the form */
+        document.getElementById('profileForm').submit();
+      }, 400);
+    }, 1800);
+  }
+
+  /* ── Remove resume ── */
+  if (removeBtn) {
+    removeBtn.addEventListener('click', () => {
+      if (!confirm('Remove your resume?')) return;
+      if (fileCard)  fileCard.style.display  = 'none';
+      if (aiPanel)   aiPanel.style.display   = 'none';
+      if (dropZone)  dropZone.style.display  = 'block';
+      if (benefits)  benefits.style.display  = 'block';
+      if (resumeInput) resumeInput.value = '';
+    });
+  }
+
+  /* ── Trigger analysis (re-show panel) ── */
+  window.triggerAnalysis = function() {
+    if (aiPanel) {
+      aiPanel.style.display = 'block';
+      aiPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      animateATS();
+    }
+  };
+
+  /* ── Avatar upload ── */
+  if (avatarInput) {
+    avatarInput.addEventListener('change', () => {
+      const file = avatarInput.files[0];
+      if (!file || !file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        if (avatarPreview) {
+          avatarPreview.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+        }
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   /* ── Accent color picker ── */
   const accentLabel = document.getElementById('accentLabel');
   document.querySelectorAll('input[name="theme_accent"]').forEach(radio => {
-    /* Style the checked swatch on load */
     if (radio.checked) markSwatch(radio);
-
     radio.addEventListener('change', function () {
-      document.querySelectorAll('.color-swatch').forEach(s => {
-        s.style.outline = 'none';
-        s.style.transform = 'scale(1)';
-      });
+      document.querySelectorAll('.color-swatch').forEach(s => { s.style.outline = 'none'; s.style.transform = 'scale(1)'; });
       markSwatch(this);
       if (accentLabel) accentLabel.textContent = this.value;
     });
   });
-
   function markSwatch(radio) {
-    const swatch = radio.nextElementSibling;
-    if (swatch) {
-      swatch.style.outline = '3px solid #fff';
-      swatch.style.outlineOffset = '2px';
-      swatch.style.transform = 'scale(1.2)';
-    }
+    const s = radio.nextElementSibling;
+    if (s) { s.style.outline = '3px solid #fff'; s.style.outlineOffset = '2px'; s.style.transform = 'scale(1.2)'; }
   }
+
 })();
 </script>
 {% endblock %}

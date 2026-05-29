@@ -26,8 +26,11 @@
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end;">
+      <!-- Quick Actions: AI Mentor + Companies -->
       <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-        <a href="{% url 'course_list' %}" class="btn-solid"><i class="fas fa-graduation-cap"></i> Courses</a>
+        <button onclick="openMentor()" class="btn-solid" style="background:linear-gradient(135deg,#7b68ee,#00d4ff);">
+          <i class="fas fa-robot"></i> AI Mentor
+        </button>
         <a href="{% url 'company_list' %}" class="btn-neon"><i class="fas fa-building"></i> Companies</a>
       </div>
       <div style="width:200px;">
@@ -78,54 +81,47 @@
 <!-- Main Grid -->
 <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;margin-bottom:22px;">
 
-  <!-- Left: Courses + Interview Tracks -->
+  <!-- Left: Interview Prep (merged tracks + courses) -->
   <div style="display:flex;flex-direction:column;gap:20px;">
 
-    <!-- Course Tracks -->
+    <!-- Interview Prep Section -->
     <div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
         <h2 style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);">
-          <i class="fas fa-graduation-cap" style="color:var(--cyan);margin-right:8px;"></i>Learning Tracks
+          <i class="fas fa-brain" style="color:var(--cyan);margin-right:8px;"></i>Interview Prep
         </h2>
-        <a href="{% url 'course_list' %}" style="color:var(--text-dim);font-size:0.78rem;text-decoration:none;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-dim)'">View all →</a>
+        <a href="{% url 'interview_prep' %}" style="color:var(--text-dim);font-size:0.78rem;text-decoration:none;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-dim)'">View all →</a>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
-        {% for course in suggested_courses %}
-        <div class="category-card" style="--cat-color:{{ course.color }};--cat-glow:{{ course.color }}0f;padding:18px 16px;"
-             onclick="openLevelModal('{{ course.slug }}','{{ course.name }}','{{ course.color }}','course')">
-          <div class="cat-icon" style="background:{{ course.color }}18;color:{{ course.color }};width:42px;height:42px;border-radius:11px;font-size:1.1rem;margin-bottom:12px;">
-            <i class="{{ course.icon }}"></i>
-          </div>
-          <div class="cat-name" style="color:{{ course.color }};font-size:0.82rem;">{{ course.name }}</div>
-          <div style="font-size:0.7rem;color:var(--text-dim);margin-top:4px;">{{ course.question_count }} questions</div>
-        </div>
-        {% endfor %}
-        <div class="category-card" style="--cat-color:var(--text-dim);padding:18px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;" onclick="window.location.href='{% url 'course_list' %}'">
-          <i class="fas fa-plus" style="font-size:1.5rem;color:var(--text-dim);margin-bottom:8px;"></i>
-          <div style="font-size:0.8rem;color:var(--text-dim);">Browse All</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Interview Categories -->
-    <div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <h2 style="font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);">
-          <i class="fas fa-layer-group" style="color:var(--green);margin-right:8px;"></i>Interview Tracks
-        </h2>
-        <a href="{% url 'categories' %}" style="color:var(--text-dim);font-size:0.78rem;text-decoration:none;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-dim)'">View all →</a>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;">
+        <!-- Interview tracks -->
         {% for category in categories %}
         <div class="category-card" style="--cat-color:{{ category.color }};--cat-glow:{{ category.color }}0f;padding:18px 16px;"
              onclick="openLevelModal('{{ category.slug }}','{{ category.name }}','{{ category.color }}','interview')">
-          <div class="cat-icon" style="background:{{ category.color }}18;color:{{ category.color }};width:42px;height:42px;border-radius:11px;font-size:1.1rem;margin-bottom:12px;">
+          <div class="cat-icon" style="background:{{ category.color }}18;color:{{ category.color }};width:42px;height:42px;border-radius:11px;font-size:1.1rem;margin-bottom:10px;">
             <i class="{{ category.icon }}"></i>
           </div>
           <div class="cat-name" style="color:{{ category.color }};font-size:0.82rem;">{{ category.name }}</div>
-          <div style="font-size:0.7rem;color:var(--text-dim);margin-top:4px;">{{ category.question_count }} questions</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);margin-top:3px;">{{ category.question_count }}Q · Interview</div>
         </div>
         {% endfor %}
+        <!-- Course tracks (suggested) -->
+        {% for course in suggested_courses %}
+        <div class="category-card" style="--cat-color:{{ course.color }};--cat-glow:{{ course.color }}0f;padding:18px 16px;"
+             onclick="openLevelModal('{{ course.slug }}','{{ course.name }}','{{ course.color }}','course')">
+          <div class="cat-icon" style="background:{{ course.color }}18;color:{{ course.color }};width:42px;height:42px;border-radius:11px;font-size:1.1rem;margin-bottom:10px;">
+            <i class="{{ course.icon }}"></i>
+          </div>
+          <div class="cat-name" style="color:{{ course.color }};font-size:0.82rem;">{{ course.name }}</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);margin-top:3px;">{{ course.question_count }}Q · Course</div>
+        </div>
+        {% endfor %}
+        <!-- Browse all card -->
+        <div class="category-card" style="--cat-color:var(--text-dim);padding:18px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:110px;"
+             onclick="window.location.href='{% url 'interview_prep' %}'">
+          <i class="fas fa-th-large" style="font-size:1.4rem;color:var(--text-dim);margin-bottom:8px;"></i>
+          <div style="font-size:0.78rem;color:var(--text-dim);font-weight:600;">All Tracks</div>
+          <div style="font-size:0.65rem;color:var(--text-ghost);margin-top:3px;">17 topics</div>
+        </div>
       </div>
     </div>
 
@@ -134,37 +130,67 @@
   <!-- Right Column -->
   <div style="display:flex;flex-direction:column;gap:16px;">
 
+    <!-- AI Mentor Quick Access -->
+    <div class="glass-card-static" style="padding:20px;position:relative;overflow:hidden;cursor:pointer;" onclick="openMentor()">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--purple),var(--cyan),transparent);"></div>
+      <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(123,104,238,0.08),transparent 70%);pointer-events:none;"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div style="width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,rgba(123,104,238,0.2),rgba(0,212,255,0.2));border:1px solid rgba(123,104,238,0.3);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--purple);box-shadow:0 0 14px rgba(123,104,238,0.25);">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.8rem;font-weight:700;color:var(--text-bright);">InterviewAI Mentor</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);">Your Personal AI Interview Coach</div>
+        </div>
+        <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse-dot 2s infinite;"></div>
+      </div>
+      <!-- Quick prompts -->
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <button onclick="event.stopPropagation();openMentorWithPrompt('Explain Django ORM')" style="text-align:left;padding:7px 11px;border-radius:8px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);color:var(--text-dim);font-family:'Rajdhani',sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,212,255,0.12)';this.style.color='var(--cyan)'" onmouseout="this.style.background='rgba(0,212,255,0.05)';this.style.color='var(--text-dim)'">
+          <i class="fas fa-bolt" style="color:var(--cyan);margin-right:6px;font-size:0.72rem;"></i>Explain Django ORM
+        </button>
+        <button onclick="event.stopPropagation();openMentorWithPrompt('Ask me a Python interview question')" style="text-align:left;padding:7px 11px;border-radius:8px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);color:var(--text-dim);font-family:'Rajdhani',sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,212,255,0.12)';this.style.color='var(--cyan)'" onmouseout="this.style.background='rgba(0,212,255,0.05)';this.style.color='var(--text-dim)'">
+          <i class="fas fa-bolt" style="color:var(--cyan);margin-right:6px;font-size:0.72rem;"></i>Ask me a Python question
+        </button>
+        <button onclick="event.stopPropagation();openMentorWithPrompt('How do I prepare for Google interview?')" style="text-align:left;padding:7px 11px;border-radius:8px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);color:var(--text-dim);font-family:'Rajdhani',sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,212,255,0.12)';this.style.color='var(--cyan)'" onmouseout="this.style.background='rgba(0,212,255,0.05)';this.style.color='var(--text-dim)'">
+          <i class="fas fa-bolt" style="color:var(--cyan);margin-right:6px;font-size:0.72rem;"></i>Prepare for Google
+        </button>
+      </div>
+      <div style="margin-top:12px;padding:8px 12px;border-radius:8px;background:linear-gradient(135deg,rgba(123,104,238,0.1),rgba(0,212,255,0.1));border:1px solid rgba(123,104,238,0.2);font-size:0.78rem;color:var(--purple);text-align:center;font-weight:600;">
+        <i class="fas fa-comments"></i> Open Full Mentor Chat →
+      </div>
+    </div>
+
     <!-- AI Recommendations -->
     <div class="glass-card-static" style="padding:20px;">
       <h3 style="font-family:'Orbitron',monospace;font-size:0.78rem;font-weight:700;letter-spacing:2px;color:var(--text-bright);margin-bottom:14px;">
-        <i class="fas fa-robot" style="color:var(--cyan);margin-right:8px;"></i>AI Recommendations
+        <i class="fas fa-chart-line" style="color:var(--cyan);margin-right:8px;"></i>AI Insights
       </h3>
       {% if weak_areas %}
       <div style="margin-bottom:12px;">
-        <div style="font-size:0.72rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Skill Gaps</div>
+        <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Skill Gaps</div>
         {% for area in weak_areas %}
         <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(255,71,87,0.06);border:1px solid rgba(255,71,87,0.15);border-radius:8px;margin-bottom:6px;">
-          <i class="fas fa-exclamation-triangle" style="color:var(--red);font-size:0.75rem;"></i>
-          <span style="font-size:0.82rem;color:var(--text-mid);">{{ area.name }}</span>
-          <span style="margin-left:auto;font-size:0.72rem;color:var(--red);font-weight:700;">{{ area.pct }}%</span>
+          <i class="fas fa-exclamation-triangle" style="color:var(--red);font-size:0.72rem;"></i>
+          <span style="font-size:0.8rem;color:var(--text-mid);">{{ area.name }}</span>
+          <span style="margin-left:auto;font-size:0.7rem;color:var(--red);font-weight:700;">{{ area.pct }}%</span>
         </div>
         {% endfor %}
       </div>
       {% endif %}
-      <!-- Interview Readiness Bar -->
       <div style="margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text-dim);margin-bottom:5px;">
           <span>Interview Readiness</span>
           <span style="color:{% if profile.readiness_score >= 70 %}var(--green){% elif profile.readiness_score >= 40 %}var(--gold){% else %}var(--red){% endif %};">{{ profile.readiness_score }}%</span>
         </div>
         <div class="progress-track">
-          <div class="progress-fill {% if profile.readiness_score >= 70 %}progress-fill-green{% elif profile.readiness_score >= 40 %}progress-fill-gold{% else %}{% endif %}"
+          <div class="progress-fill {% if profile.readiness_score >= 70 %}progress-fill-green{% elif profile.readiness_score >= 40 %}progress-fill-gold{% endif %}"
                data-width="{{ profile.readiness_score }}%" style="width:0%;"></div>
         </div>
       </div>
       {% if not profile.skills %}
-      <div style="font-size:0.78rem;color:var(--gold);background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.2);border-radius:8px;padding:8px 10px;">
-        <i class="fas fa-lightbulb"></i> Add your skills in <a href="{% url 'profile' %}" style="color:var(--cyan);">Profile</a> to improve readiness.
+      <div style="font-size:0.75rem;color:var(--gold);background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.2);border-radius:8px;padding:8px 10px;">
+        <i class="fas fa-lightbulb"></i> Add skills in <a href="{% url 'profile' %}" style="color:var(--cyan);">Profile</a> to improve readiness.
       </div>
       {% endif %}
     </div>
@@ -176,19 +202,15 @@
       </h3>
       {% for company in featured_companies %}
       <a href="{% url 'company_detail' company.slug %}" style="text-decoration:none;display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid var(--border);margin-bottom:8px;transition:all 0.3s;" onmouseover="this.style.borderColor='var(--border-hover)'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="width:36px;height:36px;border-radius:9px;background:{{ company.color }}18;color:{{ company.color }};display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;">
-          <i class="{{ company.logo_icon }}"></i>
-        </div>
+        <div style="width:34px;height:34px;border-radius:9px;background:{{ company.color }}18;color:{{ company.color }};display:flex;align-items:center;justify-content:center;font-size:0.88rem;flex-shrink:0;"><i class="{{ company.logo_icon }}"></i></div>
         <div style="flex:1;">
-          <div style="font-weight:600;font-size:0.85rem;color:var(--text-bright);">{{ company.name }}</div>
-          <div style="font-size:0.7rem;color:var(--text-dim);">{{ company.open_positions }} openings · {{ company.salary_display }}</div>
+          <div style="font-weight:600;font-size:0.83rem;color:var(--text-bright);">{{ company.name }}</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);">{{ company.open_positions }} openings · {{ company.salary_display }}</div>
         </div>
-        <div style="width:8px;height:8px;border-radius:50%;background:{{ company.status_color }};box-shadow:0 0 6px {{ company.status_color }};flex-shrink:0;"></div>
+        <div style="width:7px;height:7px;border-radius:50%;background:{{ company.status_color }};box-shadow:0 0 6px {{ company.status_color }};flex-shrink:0;"></div>
       </a>
       {% endfor %}
-      <a href="{% url 'company_list' %}" class="btn-neon" style="width:100%;text-align:center;padding:8px;font-size:0.78rem;margin-top:4px;">
-        View All Companies →
-      </a>
+      <a href="{% url 'company_list' %}" class="btn-neon" style="width:100%;text-align:center;padding:8px;font-size:0.78rem;margin-top:4px;">View All Companies →</a>
     </div>
 
     <!-- Badges -->
@@ -200,9 +222,7 @@
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;">
         {% for badge in badges %}
         <div class="badge-item">
-          <div class="badge-icon" style="background:{{ badge.color }}18;color:{{ badge.color }};border:1px solid {{ badge.color }}33;">
-            <i class="{{ badge.icon }}"></i>
-          </div>
+          <div class="badge-icon" style="background:{{ badge.color }}18;color:{{ badge.color }};border:1px solid {{ badge.color }}33;"><i class="{{ badge.icon }}"></i></div>
           <div class="badge-name">{{ badge.name }}</div>
         </div>
         {% endfor %}
@@ -221,9 +241,7 @@
   </h2>
   {% for session in recent_interviews %}
   <div class="history-row fade-in-up">
-    <div style="width:38px;height:38px;border-radius:10px;background:{{ session.category.color }}18;color:{{ session.category.color }};display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0;">
-      <i class="{{ session.category.icon }}"></i>
-    </div>
+    <div style="width:38px;height:38px;border-radius:10px;background:{{ session.category.color }}18;color:{{ session.category.color }};display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0;"><i class="{{ session.category.icon }}"></i></div>
     <div style="flex:1;min-width:0;">
       <div style="font-weight:600;color:var(--text-bright);font-size:0.88rem;">{{ session.category.name }}</div>
       <div style="font-size:0.72rem;color:var(--text-dim);">{{ session.created_at|date:"M d, Y · H:i" }} · Interview Track</div>
@@ -238,9 +256,7 @@
   {% endfor %}
   {% for session in recent_courses %}
   <div class="history-row fade-in-up">
-    <div style="width:38px;height:38px;border-radius:10px;background:{{ session.course.color }}18;color:{{ session.course.color }};display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0;">
-      <i class="{{ session.course.icon }}"></i>
-    </div>
+    <div style="width:38px;height:38px;border-radius:10px;background:{{ session.course.color }}18;color:{{ session.course.color }};display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0;"><i class="{{ session.course.icon }}"></i></div>
     <div style="flex:1;min-width:0;">
       <div style="font-weight:600;color:var(--text-bright);font-size:0.88rem;">{{ session.course.name }}</div>
       <div style="font-size:0.72rem;color:var(--text-dim);">{{ session.created_at|date:"M d, Y · H:i" }} · Course</div>
@@ -260,7 +276,6 @@
 
 {% block extra_js %}
 <script>
-// Override openLevelModal to handle both course and interview types
 function openLevelModal(slug, name, color, type) {
   const modal = document.getElementById('levelModal');
   if (!modal) return;
@@ -268,11 +283,7 @@ function openLevelModal(slug, name, color, type) {
   modal.querySelectorAll('.level-btn').forEach(btn => {
     btn.onclick = () => {
       const level = btn.getAttribute('data-level');
-      if (type === 'course') {
-        window.location.href = '/courses/start/' + slug + '/?difficulty=' + level;
-      } else {
-        window.location.href = '/interview/start/' + slug + '/?difficulty=' + level;
-      }
+      window.location.href = (type === 'course' ? '/courses/start/' : '/interview/start/') + slug + '/?difficulty=' + level;
     };
   });
   modal.style.display = 'flex';

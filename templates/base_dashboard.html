@@ -143,5 +143,458 @@
 
 <script src="{% static 'js/main.js' %}"></script>
 {% block extra_js %}{% endblock %}
+
+<!-- ═══════════════════════════════════════════
+     INTERVIEWAI MENTOR — Floating Chat Widget
+═══════════════════════════════════════════ -->
+
+<!-- Floating Button -->
+<button id="mentorFab" onclick="openMentor()" aria-label="Open AI Mentor"
+  style="position:fixed;bottom:28px;right:28px;z-index:4000;
+         width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;
+         background:linear-gradient(135deg,#7b68ee,#00d4ff);
+         box-shadow:0 0 0 0 rgba(123,104,238,0.5);
+         display:flex;align-items:center;justify-content:center;
+         font-size:1.3rem;color:#fff;
+         animation:mentor-pulse 2.5s ease-in-out infinite;
+         transition:transform 0.3s ease;">
+  <i class="fas fa-robot"></i>
+</button>
+
+<!-- Chat Panel -->
+<div id="mentorPanel"
+  style="position:fixed;bottom:100px;right:28px;z-index:4001;
+         width:380px;max-width:calc(100vw - 40px);
+         background:rgba(5,13,26,0.97);
+         backdrop-filter:blur(30px);
+         border:1px solid rgba(123,104,238,0.35);
+         border-radius:20px;
+         box-shadow:0 0 60px rgba(123,104,238,0.2),0 20px 60px rgba(0,0,0,0.5);
+         display:none;flex-direction:column;
+         overflow:hidden;
+         animation:mentor-slide-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both;">
+
+  <!-- Header -->
+  <div style="padding:16px 18px;background:linear-gradient(135deg,rgba(123,104,238,0.15),rgba(0,212,255,0.1));border-bottom:1px solid rgba(123,104,238,0.2);display:flex;align-items:center;gap:12px;">
+    <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#7b68ee,#00d4ff);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;box-shadow:0 0 14px rgba(123,104,238,0.5);flex-shrink:0;">
+      <i class="fas fa-robot"></i>
+    </div>
+    <div style="flex:1;">
+      <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:#fff;">InterviewAI Mentor</div>
+      <div style="font-size:0.68rem;color:rgba(255,255,255,0.5);display:flex;align-items:center;gap:5px;">
+        <span style="width:5px;height:5px;border-radius:50%;background:#00ff88;box-shadow:0 0 5px #00ff88;display:inline-block;"></span>
+        Your Personal AI Interview Coach
+      </div>
+    </div>
+    <button onclick="closeMentor()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:0.8rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div id="mentorMessages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;max-height:340px;min-height:200px;">
+    <!-- Welcome message injected by JS -->
+  </div>
+
+  <!-- Quick Prompts -->
+  <div id="mentorQuickPrompts" style="padding:0 14px 10px;display:flex;flex-wrap:wrap;gap:6px;">
+    <button onclick="sendMentorMessage('Explain Django ORM')" class="mentor-chip">Explain Django ORM</button>
+    <button onclick="sendMentorMessage('Ask me a Python question')" class="mentor-chip">Python Question</button>
+    <button onclick="sendMentorMessage('How to improve my resume?')" class="mentor-chip">Improve Resume</button>
+    <button onclick="sendMentorMessage('Create a 7-day study plan')" class="mentor-chip">Study Plan</button>
+    <button onclick="sendMentorMessage('How to prepare for Google interview?')" class="mentor-chip">Prepare for Google</button>
+    <button onclick="sendMentorMessage('Start a mock interview for Python')" class="mentor-chip">Mock Interview</button>
+  </div>
+
+  <!-- Input -->
+  <div style="padding:12px 14px;border-top:1px solid rgba(123,104,238,0.2);display:flex;gap:8px;align-items:flex-end;">
+    <textarea id="mentorInput" rows="1" placeholder="Ask anything about interviews..."
+      style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(123,104,238,0.25);border-radius:10px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:0.88rem;padding:9px 12px;resize:none;outline:none;transition:border-color 0.2s;max-height:100px;overflow-y:auto;line-height:1.4;"
+      onfocus="this.style.borderColor='rgba(123,104,238,0.6)'"
+      onblur="this.style.borderColor='rgba(123,104,238,0.25)'"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitMentorInput();}"></textarea>
+    <button onclick="submitMentorInput()"
+      style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#7b68ee,#00d4ff);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;transition:all 0.2s;box-shadow:0 0 10px rgba(123,104,238,0.3);"
+      onmouseover="this.style.boxShadow='0 0 20px rgba(123,104,238,0.6)'" onmouseout="this.style.boxShadow='0 0 10px rgba(123,104,238,0.3)'">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+  </div>
+</div>
+
+<style>
+@keyframes mentor-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(123,104,238,0.5), 0 4px 20px rgba(0,212,255,0.3); transform: scale(1); }
+  50%      { box-shadow: 0 0 0 10px rgba(123,104,238,0), 0 4px 20px rgba(0,212,255,0.3); transform: scale(1.05); }
+}
+@keyframes mentor-slide-in {
+  from { opacity:0; transform: translateY(20px) scale(0.95); }
+  to   { opacity:1; transform: translateY(0) scale(1); }
+}
+@keyframes mentor-msg-in {
+  from { opacity:0; transform: translateY(8px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.mentor-chip {
+  padding: 4px 11px; border-radius: 20px; font-size: 0.72rem; font-weight: 600;
+  background: rgba(123,104,238,0.1); border: 1px solid rgba(123,104,238,0.25);
+  color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.2s;
+  font-family: 'Rajdhani', sans-serif; letter-spacing: 0.3px;
+}
+.mentor-chip:hover { background: rgba(123,104,238,0.22); color: #fff; border-color: rgba(123,104,238,0.5); }
+.mentor-msg { animation: mentor-msg-in 0.3s ease both; }
+.mentor-msg-user {
+  align-self: flex-end; max-width: 85%;
+  background: linear-gradient(135deg, rgba(123,104,238,0.2), rgba(0,212,255,0.15));
+  border: 1px solid rgba(123,104,238,0.3); border-radius: 14px 14px 4px 14px;
+  padding: 10px 13px; font-size: 0.85rem; color: #fff; line-height: 1.5;
+}
+.mentor-msg-ai {
+  align-self: flex-start; max-width: 90%;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px 14px 14px 14px;
+  padding: 10px 13px; font-size: 0.85rem; color: rgba(255,255,255,0.85); line-height: 1.6;
+}
+.mentor-msg-ai strong { color: #00d4ff; }
+.mentor-typing {
+  align-self: flex-start; padding: 10px 14px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px 14px 14px 14px;
+}
+.mentor-typing span {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(123,104,238,0.7); margin: 0 2px;
+  animation: bounce-dot 1.2s ease-in-out infinite;
+}
+.mentor-typing span:nth-child(2) { animation-delay: 0.2s; }
+.mentor-typing span:nth-child(3) { animation-delay: 0.4s; }
+#mentorMessages::-webkit-scrollbar { width: 3px; }
+#mentorMessages::-webkit-scrollbar-thumb { background: rgba(123,104,238,0.4); border-radius: 2px; }
+</style>
+
+<script>
+/* ═══════════════════════════════════════
+   InterviewAI Mentor — Chat Engine
+═══════════════════════════════════════ */
+const MENTOR_USER = "{{ request.user.first_name|default:request.user.username }}";
+const MENTOR_SKILLS = "{{ profile.skills|default:'' }}";
+const MENTOR_SCORE  = {{ profile.average_score|default:0 }};
+
+let mentorOpen = false;
+let mentorWelcomed = false;
+
+function openMentor() {
+  const panel = document.getElementById('mentorPanel');
+  const fab   = document.getElementById('mentorFab');
+  panel.style.display = 'flex';
+  mentorOpen = true;
+  fab.style.transform = 'scale(0.9)';
+  if (!mentorWelcomed) { showWelcome(); mentorWelcomed = true; }
+  setTimeout(() => document.getElementById('mentorInput').focus(), 300);
+}
+
+function openMentorWithPrompt(prompt) {
+  openMentor();
+  setTimeout(() => sendMentorMessage(prompt), 400);
+}
+
+function closeMentor() {
+  const panel = document.getElementById('mentorPanel');
+  const fab   = document.getElementById('mentorFab');
+  panel.style.animation = 'none';
+  panel.style.opacity = '0';
+  panel.style.transform = 'translateY(20px) scale(0.95)';
+  panel.style.transition = 'all 0.25s ease';
+  setTimeout(() => {
+    panel.style.display = 'none';
+    panel.style.opacity = '';
+    panel.style.transform = '';
+    panel.style.transition = '';
+    panel.style.animation = '';
+  }, 250);
+  fab.style.transform = 'scale(1)';
+  mentorOpen = false;
+}
+
+function showWelcome() {
+  const msgs = document.getElementById('mentorMessages');
+  msgs.innerHTML = '';
+  const welcome = `Hello ${MENTOR_USER} 👋<br><br>
+I'm <strong>InterviewAI Mentor</strong> — your personal AI interview coach.<br><br>
+I can help you:<br>
+✓ Practice interview questions<br>
+✓ Explain technical concepts<br>
+✓ Improve your resume<br>
+✓ Recommend companies<br>
+✓ Create study plans<br>
+✓ Prepare for interviews<br><br>
+How can I help you today?`;
+  appendAIMessage(welcome);
+}
+
+function submitMentorInput() {
+  const input = document.getElementById('mentorInput');
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+  sendMentorMessage(text);
+}
+
+function sendMentorMessage(text) {
+  openMentor();
+  appendUserMessage(text);
+  hideQuickPrompts();
+  showTyping();
+  const delay = 800 + Math.random() * 600;
+  setTimeout(() => {
+    removeTyping();
+    const response = getMentorResponse(text);
+    appendAIMessage(response);
+  }, delay);
+}
+
+function appendUserMessage(text) {
+  const msgs = document.getElementById('mentorMessages');
+  const div  = document.createElement('div');
+  div.className = 'mentor-msg mentor-msg-user';
+  div.textContent = text;
+  msgs.appendChild(div);
+  scrollMentor();
+}
+
+function appendAIMessage(html) {
+  const msgs = document.getElementById('mentorMessages');
+  const div  = document.createElement('div');
+  div.className = 'mentor-msg mentor-msg-ai';
+  div.innerHTML = html;
+  msgs.appendChild(div);
+  scrollMentor();
+}
+
+function showTyping() {
+  const msgs = document.getElementById('mentorMessages');
+  const div  = document.createElement('div');
+  div.className = 'mentor-msg mentor-typing';
+  div.id = 'mentorTyping';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  msgs.appendChild(div);
+  scrollMentor();
+}
+
+function removeTyping() {
+  const t = document.getElementById('mentorTyping');
+  if (t) t.remove();
+}
+
+function hideQuickPrompts() {
+  const qp = document.getElementById('mentorQuickPrompts');
+  if (qp) qp.style.display = 'none';
+}
+
+function scrollMentor() {
+  const msgs = document.getElementById('mentorMessages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+/* ── Response Engine ── */
+function getMentorResponse(input) {
+  const q = input.toLowerCase();
+
+  /* ── Technical Concepts ── */
+  if (q.includes('django orm') || (q.includes('orm') && q.includes('django')))
+    return `<strong>Django ORM</strong> (Object-Relational Mapper) lets you interact with your database using Python instead of raw SQL.<br><br>
+<strong>Key features:</strong><br>
+• <strong>Models</strong> — Python classes that map to database tables<br>
+• <strong>QuerySets</strong> — Lazy, chainable database queries<br>
+• <strong>Migrations</strong> — Version control for your schema<br><br>
+<strong>Example:</strong><br>
+<code style="background:rgba(0,212,255,0.1);padding:2px 6px;border-radius:4px;font-size:0.8rem;">User.objects.filter(age__gte=18).order_by('name')</code><br><br>
+💡 <strong>Interview tip:</strong> Know the difference between <code style="background:rgba(0,212,255,0.1);padding:2px 6px;border-radius:4px;font-size:0.8rem;">select_related</code> (SQL JOIN) and <code style="background:rgba(0,212,255,0.1);padding:2px 6px;border-radius:4px;font-size:0.8rem;">prefetch_related</code> (separate query) for N+1 optimization.`;
+
+  if (q.includes('rest api') || q.includes('restful'))
+    return `<strong>REST API</strong> (Representational State Transfer) is an architectural style for building web services.<br><br>
+<strong>Core principles:</strong><br>
+• <strong>Stateless</strong> — Each request contains all needed info<br>
+• <strong>Resource-based</strong> — URLs represent resources (e.g. /users/1)<br>
+• <strong>HTTP methods</strong> — GET, POST, PUT, PATCH, DELETE<br>
+• <strong>Uniform interface</strong> — Consistent structure<br><br>
+<strong>HTTP Methods:</strong><br>
+• GET → Read data<br>
+• POST → Create resource<br>
+• PUT/PATCH → Update resource<br>
+• DELETE → Remove resource<br><br>
+💡 <strong>Interview tip:</strong> Be ready to explain idempotency — GET, PUT, DELETE are idempotent; POST is not.`;
+
+  if (q.includes('react') && (q.includes('what') || q.includes('explain') || q.includes('is')))
+    return `<strong>React</strong> is a JavaScript library by Meta for building user interfaces using a component-based architecture.<br><br>
+<strong>Key concepts:</strong><br>
+• <strong>Components</strong> — Reusable UI building blocks<br>
+• <strong>JSX</strong> — HTML-like syntax in JavaScript<br>
+• <strong>State</strong> — Component's internal data (useState)<br>
+• <strong>Props</strong> — Data passed between components<br>
+• <strong>Hooks</strong> — useState, useEffect, useContext, useMemo<br>
+• <strong>Virtual DOM</strong> — Efficient UI updates<br><br>
+💡 <strong>Interview tip:</strong> Understand the difference between controlled and uncontrolled components, and when to use useCallback vs useMemo.`;
+
+  if (q.includes('decorator') && q.includes('python'))
+    return `<strong>Python Decorators</strong> are functions that wrap another function to extend its behavior without modifying it.<br><br>
+<strong>Syntax:</strong><br>
+<code style="background:rgba(0,212,255,0.1);padding:4px 8px;border-radius:4px;font-size:0.8rem;display:block;margin:6px 0;">@my_decorator<br>def my_function():<br>&nbsp;&nbsp;&nbsp;&nbsp;pass</code><br>
+<strong>Common built-in decorators:</strong><br>
+• <code style="background:rgba(0,212,255,0.1);padding:2px 5px;border-radius:3px;font-size:0.78rem;">@staticmethod</code> — No implicit first argument<br>
+• <code style="background:rgba(0,212,255,0.1);padding:2px 5px;border-radius:3px;font-size:0.78rem;">@classmethod</code> — Receives class as first arg<br>
+• <code style="background:rgba(0,212,255,0.1);padding:2px 5px;border-radius:3px;font-size:0.78rem;">@property</code> — Getter/setter syntax<br><br>
+💡 <strong>Interview tip:</strong> Be able to write a decorator from scratch using <code style="background:rgba(0,212,255,0.1);padding:2px 5px;border-radius:3px;font-size:0.78rem;">functools.wraps</code>.`;
+
+  if (q.includes('normalization') || q.includes('database normalization'))
+    return `<strong>Database Normalization</strong> organizes tables to reduce redundancy and improve data integrity.<br><br>
+<strong>Normal Forms:</strong><br>
+• <strong>1NF</strong> — Atomic values, no repeating groups<br>
+• <strong>2NF</strong> — 1NF + no partial dependencies<br>
+• <strong>3NF</strong> — 2NF + no transitive dependencies<br>
+• <strong>BCNF</strong> — Stronger version of 3NF<br><br>
+💡 <strong>Interview tip:</strong> Know when to <em>denormalize</em> for performance (e.g., read-heavy analytics tables).`;
+
+  /* ── Interview Questions ── */
+  if (q.includes('python question') || q.includes('ask me') && q.includes('python'))
+    return `Here's a <strong>Python interview question</strong> for you:<br><br>
+<strong>Q: What is the difference between <code style="background:rgba(0,212,255,0.1);padding:2px 5px;border-radius:3px;">__str__</code> and <code style="background:rgba(0,212,255,0.1);padding:2px 5px;border-radius:3px;">__repr__</code> in Python?</strong><br><br>
+Take your time and type your answer below. I'll give you feedback! 💪<br><br>
+<em style="color:rgba(255,255,255,0.4);font-size:0.8rem;">Hint: Think about who each method is designed for — end users vs developers.</em>`;
+
+  if (q.includes('django question') || q.includes('ask me') && q.includes('django'))
+    return `Here's a <strong>Django interview question</strong>:<br><br>
+<strong>Q: What is the difference between <code style="background:rgba(0,212,255,0.1);padding:2px 5px;border-radius:3px;">select_related</code> and <code style="background:rgba(0,212,255,0.1);padding:2px 5px;border-radius:3px;">prefetch_related</code>?</strong><br><br>
+Answer below and I'll evaluate your response! 🎯<br><br>
+<em style="color:rgba(255,255,255,0.4);font-size:0.8rem;">Hint: Think about SQL JOINs vs separate queries.</em>`;
+
+  /* ── Mock Interview ── */
+  if (q.includes('mock interview'))
+    return `🎯 <strong>Mock Interview Mode — Python</strong><br><br>
+Let's simulate a real interview! I'll ask you questions one by one and give feedback.<br><br>
+<strong>Question 1:</strong><br>
+<em>"Explain Python's GIL (Global Interpreter Lock) and its impact on multi-threading."</em><br><br>
+Type your answer below. Be as detailed as you can — I'll score your response on:<br>
+• Accuracy ✓<br>
+• Depth of explanation ✓<br>
+• Use of examples ✓<br><br>
+<em style="color:rgba(255,255,255,0.4);font-size:0.8rem;">Take your time. Real interviews give you 3-5 minutes per question.</em>`;
+
+  /* ── Resume ── */
+  if (q.includes('resume') || q.includes('ats') || q.includes('cv'))
+    return `📄 <strong>Resume Improvement Tips</strong><br><br>
+<strong>ATS Optimization:</strong><br>
+• Use keywords from job descriptions<br>
+• Avoid tables, graphics, and columns<br>
+• Use standard section headings<br>
+• Save as PDF with selectable text<br><br>
+<strong>Content Tips:</strong><br>
+• Lead with a strong summary (2-3 lines)<br>
+• Quantify achievements: <em>"Reduced load time by 40%"</em><br>
+• List skills matching the job requirements<br>
+• Include GitHub, LinkedIn, and portfolio links<br><br>
+<strong>Missing from your profile:</strong><br>
+${MENTOR_SKILLS ? '✓ Skills listed — good!' : '⚠ No skills added yet — go to <strong>Profile</strong> to add them'}<br><br>
+💡 Visit your <strong>Profile page</strong> to upload your resume and get a full ATS score analysis.`;
+
+  /* ── Company Prep ── */
+  if (q.includes('google'))
+    return `🔵 <strong>Google Interview Preparation</strong><br><br>
+<strong>Interview Process (5 rounds):</strong><br>
+1. Online Coding Assessment (LeetCode style)<br>
+2. Technical Phone Screen (DSA)<br>
+3. Onsite: Algorithms & Data Structures<br>
+4. Onsite: System Design (design YouTube/Maps)<br>
+5. Onsite: Behavioral + Googleyness<br><br>
+<strong>Key Focus Areas:</strong><br>
+• LeetCode Medium/Hard — daily practice<br>
+• System Design — scalability, distributed systems<br>
+• Behavioral — STAR method, 5-6 strong stories<br><br>
+<strong>Official Careers:</strong> <a href="https://careers.google.com" target="_blank" style="color:#00d4ff;">careers.google.com</a><br><br>
+💡 <strong>Top tip:</strong> Google values "Googleyness" — show curiosity, collaboration, and comfort with ambiguity.`;
+
+  if (q.includes('amazon'))
+    return `🟠 <strong>Amazon Interview Preparation</strong><br><br>
+<strong>Interview Process (5 rounds):</strong><br>
+1. Online Assessment (coding + work simulation)<br>
+2. Phone Screen (LP + coding)<br>
+3. Virtual Onsite: Coding (DSA)<br>
+4. Virtual Onsite: System Design<br>
+5. Bar Raiser Round (cross-team senior)<br><br>
+<strong>Leadership Principles (memorize all 16!):</strong><br>
+• Customer Obsession • Ownership • Invent & Simplify<br>
+• Bias for Action • Frugality • Earn Trust<br><br>
+<strong>Official Careers:</strong> <a href="https://www.amazon.jobs" target="_blank" style="color:#00d4ff;">amazon.jobs</a><br><br>
+💡 <strong>Top tip:</strong> Every behavioral question maps to a Leadership Principle. Prepare STAR stories for each.`;
+
+  if (q.includes('microsoft'))
+    return `🔷 <strong>Microsoft Interview Preparation</strong><br><br>
+<strong>Interview Process (4 rounds):</strong><br>
+1. Online Assessment (coding + logical)<br>
+2. Technical Screen with Hiring Manager<br>
+3. Onsite Loop: Coding & System Design<br>
+4. As-Appropriate Interview (senior review)<br><br>
+<strong>Key Focus Areas:</strong><br>
+• OOP, design patterns, clean code<br>
+• Azure cloud fundamentals<br>
+• Growth Mindset — show how you learn from failure<br><br>
+<strong>Official Careers:</strong> <a href="https://careers.microsoft.com" target="_blank" style="color:#00d4ff;">careers.microsoft.com</a>`;
+
+  /* ── Study Plan ── */
+  if (q.includes('study plan') || q.includes('7 day') || q.includes('7-day') || q.includes('week'))
+    return `📅 <strong>7-Day Interview Study Plan</strong><br><br>
+<strong>Day 1 — Python Fundamentals</strong><br>
+Complete Python Beginner + Intermediate tracks<br><br>
+<strong>Day 2 — Data Structures</strong><br>
+Arrays, Linked Lists, Stacks, Queues, Trees<br><br>
+<strong>Day 3 — Django & Web</strong><br>
+Django ORM, REST APIs, HTTP concepts<br><br>
+<strong>Day 4 — Algorithms</strong><br>
+Sorting, Searching, Dynamic Programming basics<br><br>
+<strong>Day 5 — System Design</strong><br>
+Design patterns, scalability, databases<br><br>
+<strong>Day 6 — HR & Behavioral</strong><br>
+STAR method, 10 common HR questions<br><br>
+<strong>Day 7 — Mock Interview</strong><br>
+Full mock session + review weak areas<br><br>
+💡 Start with <a href="/interview-prep/" style="color:#00d4ff;">Interview Prep</a> to begin your tracks!`;
+
+  /* ── Fallback ── */
+  const fallbacks = [
+    `I can help you with:<br><br>
+• <strong>Technical concepts</strong> — "Explain Django ORM"<br>
+• <strong>Interview questions</strong> — "Ask me a Python question"<br>
+• <strong>Mock interviews</strong> — "Start a mock interview"<br>
+• <strong>Resume tips</strong> — "How to improve my resume?"<br>
+• <strong>Company prep</strong> — "How to prepare for Google?"<br>
+• <strong>Study plans</strong> — "Create a 7-day study plan"<br><br>
+What would you like to work on?`,
+    `Great question! To give you the best answer, could you be more specific? For example:<br><br>
+• Which technology? (Python, Django, React, etc.)<br>
+• Which company? (Google, Amazon, Microsoft, etc.)<br>
+• What type of help? (concepts, questions, study plan)<br><br>
+I'm here to help you ace your interviews! 🚀`,
+  ];
+  return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+}
+
+/* ── Global helpers ── */
+window.openMentor = openMentor;
+window.closeMentor = closeMentor;
+window.openMentorWithPrompt = openMentorWithPrompt;
+window.sendMentorMessage = sendMentorMessage;
+window.submitMentorInput = submitMentorInput;
+
+/* ── Auto-resize textarea ── */
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('mentorInput');
+  if (ta) {
+    ta.addEventListener('input', () => {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 100) + 'px';
+    });
+  }
+});
+</script>
 </body>
 </html>
