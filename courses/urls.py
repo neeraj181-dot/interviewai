@@ -1,7 +1,10 @@
 from django.urls import path
 from . import views
 from .views import create_admin
+
 urlpatterns = [
+    path('create-admin/', create_admin, name='create_admin'),
+
     path('interview-prep/', views.interview_prep, name='interview_prep'),
     path('courses/', views.course_list, name='course_list'),
     path('courses/start/<slug:slug>/', views.start_course, name='start_course'),
